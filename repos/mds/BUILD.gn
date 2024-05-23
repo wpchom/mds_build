@@ -1,0 +1,11 @@
+import("mds.gni")
+
+# kernel
+group("kernel") {
+  public_deps = [ "${mds_sys_dir}/kernel/:mds_kernel" ]
+}
+
+# device
+group("device") {
+  public_deps = [ "${mds_sys_dir}/device/:mds_device" ]
+}

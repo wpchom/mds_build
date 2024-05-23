@@ -1,0 +1,6 @@
+import("../../../mds.gni")
+
+group("chip_stm32h7xx_driver") {
+  public_deps =
+      [ "${mds_sys_dir}/driver/chip/stm32h7xx/:chip_stm32h7xx_driver" ]
+}

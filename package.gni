@@ -1,0 +1,32 @@
+assert(defined(mds_build_dir))
+
+declare_args() {
+  mds_script_dir = rebase_path("${mds_build_dir}/script")
+  mds_download_dir = rebase_path("${mds_build_dir}/../mds_pkgs/download")
+  mds_package_dir = rebase_path("${mds_build_dir}/../mds_pkgs/package")
+}
+
+template("pkggroup") {
+  group(target_name) {
+    if (defined(invoker.package)) {
+      package = invoker.package
+    } else {
+      package = target_name
+    }
+
+    public_deps = []
+    public_configs = []
+
+    if (defined(invoker.deps)) {
+      foreach(d, invoker.deps) {
+        public_deps += [ "${mds_build_dir}/repos/${package}/" + d ]
+      }
+    }
+
+    if (defined(invoker.configs)) {
+      foreach(c, invoker.configs) {
+        public_configs += [ "${mds_build_dir}/repos/${package}/" + c ]
+      }
+    }
+  }
+}

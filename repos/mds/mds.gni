@@ -1,0 +1,27 @@
+declare_args() {
+  mds_sys_pkg = "mds"
+  mds_sys_ver = "master"
+  mds_sys_url = "git@github.com:wpchom/mds.git"
+}
+
+declare_args() {
+  if (!defined(mds_sys_dir)) {
+    mds_sys_ret = exec_script("${mds_script_dir}/package.py",
+                              [
+                                "${mds_sys_pkg}",
+                                "-u=${mds_sys_url}",
+                                "-v=${mds_sys_ver}",
+                                "-d=${mds_download_dir}",
+                                "-p=${mds_package_dir}",
+                              ],
+                              "string")
+  }
+}
+
+declare_args() {
+  if (!defined(mds_sys_dir)) {
+    print("package ${mds_sys_pkg}-${mds_sys_ret}")
+    mds_sys_dir =
+        "${mds_package_dir}/${mds_sys_pkg}/${mds_sys_ret}/mds-${mds_sys_ret}"
+  }
+}
