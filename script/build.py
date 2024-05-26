@@ -7,7 +7,7 @@ import argparse
 import platform
 import subprocess
 
-BINDIR = os.path.join(os.path.dirname(__file__), ".bin")
+BINDIR = os.path.join(os.path.dirname(__file__), ".pkgs/bin")
 
 
 def error(message):
@@ -24,23 +24,18 @@ def unzip(filepath, decompress_dir):
 
 def build_argparse():
     parser = argparse.ArgumentParser(
-        description="build.py [build|rebuild|clean] [-b buildir] [-f dotfile] [-o outdit] [-v]")
+        description="build.py <buildir> [-f dotfile] [-o outdit] [-v] [-r]")
 
-    parser.add_argument("action", type=str,
-                        metavar="action to build(b) / clean(c) / rebuild(r)",
-                        choices=["build", "b", "clean", "c", "rebuild", "r"],
-                        default="build", nargs='?')
-
-    parser.add_argument("-b", "--buildir", type=str, default=None,
-                        help="gn root directory, default: ./")
+    parser.add_argument("buildir", type=str, nargs="?",
+                        help="buildir for project where gn build root dir")
     parser.add_argument("-f", "--dotfile", type=str, default=None,
-                        help="gn dotfile, default: <buildir>/.gn")
+                        help="default all dotfile in project")
     parser.add_argument("-o", "--outdir", type=str, default=None,
-                        help="gn output directory, default: ./outdir")
+                        help="gn output directory, default: ./out")
 
     parser.add_argument("-x", "--proxy", type=str, default=None,
                         help="proxy server, default: None")
-    parser.add_argument("-r", "--rebuild", dest="verbose",
+    parser.add_argument("-r", "--rebuild", dest="rebuild",
                         action="store_true", default=False,
                         help="show build verbose output")
     parser.add_argument("-v", "--verbose", dest="verbose",
@@ -49,27 +44,6 @@ def build_argparse():
 
     args = parser.parse_args()
 
-    if args.buildir.startswith(".."):
-        error("don use parent dir to bildir")
-
-    if args.buildir != None:
-        args.buildir = os.path.join(os.getcwd(), args.buildir)
-    args.buildir = os.path.relpath(args.buildir, os.getcwd())
-
-    if args.outdir == None:
-        args.outdir = os.path.join(os.path.realpath(
-            os.getcwd()), "outdir", os.path.split(args.buildir)[-1])
-
-    if args.dotfile == None:
-        args.dotfile = os.path.join(args.buildir, ".gn")
-    else:
-        args.outdir = os.path.join(args.outdir, args.dotfile)
-        args.dotfile = os.path.join(
-            args.buildir, "dotfile", args.dotfile+".gn")
-
-    if args.proxy != None:
-        os.environ['MDS_PROXY'] = args.proxy
-
     return (args)
 
 
@@ -77,10 +51,6 @@ class Build:
     def __init__(self, args):
         self.args = args
         self.verbose(self.args)
-
-    def error(self, message):
-        print("\033[31m>>> {}\033[0m".format(message), flush=True)
-        exit(-1)
 
     def verbose(self, *contexts):
         if (self.args.verbose):
@@ -99,34 +69,47 @@ class Build:
             if subprocess.run(command).returncode != 0:
                 exit(-1)
 
-            os.rename(path+".tmp", path)
+            os.rename(path + ".tmp", path)
         except:
             error("download '{}' from '{}' fail".format(path, url))
 
-    def clean(self):
-        print("\033[33m>>> Build clean output directory '{}'\033[0m".format(
-              self.args.outdir), flush=True)
+    def build(self, dotname):
+        # dotfile
+        dotfile = os.path.abspath(os.path.join(
+            self.args.buildir, "dotfile", dotname + ".gn"))
+        if not os.path.exists(dotfile):
+            error("dotfiel '{}' is not exist".format(dotfile))
 
-        git_ignore = os.path.join(self.args.outdir, ".gitignore")
-        if os.path.exists(git_ignore) and open(git_ignore, "r").read() == "/*\n":
-            shutil.rmtree(self.args.outdir)
+        # outdir
+        if self.args.outdir == None:
+            self.args.outdir = os.path.join(os.getcwd(), "out")
+        outdir = os.path.join(self.args.outdir, os.path.split(
+            os.path.abspath(self.args.buildir))[-1], dotname)
 
-    def build(self):
-        if not os.path.exists(self.args.dotfile):
-            error("'{}' is not exists".format(self.args.dotfile))
-
+        # start time
         stime = time.time()
-        print("\033[32m>>> Building action start '{}' with '{}'\033[0m".format(
-            self.args.buildir, self.args.dotfile), flush=True)
 
+        # rebuild
+        if self.args.rebuild:
+            print("\033[33m>>> Build clean output directory '{}'\033[0m".format(
+                outdir), flush=True)
+            git_ignore = os.path.join(outdir, ".gitignore")
+            if os.path.exists(git_ignore) and open(git_ignore, "r").read() == "/*\n":
+                shutil.rmtree(outdir)
+
+        print("\033[32m>>> Building with '{}'\033[0m".format(
+            dotfile), flush=True)
+
+        # create outdir
         try:
-            os.makedirs(self.args.outdir, exist_ok=True)
-            open(os.path.join(self.args.outdir, ".gitignore"), "w+").write("/*\n")
+            os.makedirs(outdir, exist_ok=True)
+            open(os.path.join(outdir, ".gitignore"), "w+").write("/*\n")
         except:
-            error("some error on '{}'".format(self.args.outdir))
+            error("some error on '{}'".format(outdir))
 
-        gn_gen_cmd = " ".join([self.gn, "gen", self.args.outdir,
-                              "--root="+self.args.buildir, "--dotfile="+self.args.dotfile])
+        # gn gen
+        gn_gen_cmd = " ".join(
+            [self.gn, "gen", outdir, "--root="+self.args.buildir, "--dotfile="+dotfile])
         self.verbose(gn_gen_cmd)
 
         try:
@@ -134,22 +117,26 @@ class Build:
             if ret.returncode != 0:
                 error("gn gen error:%d", ret.returncode)
         except:
-            if os.path.exists(self.args.outdir):
-                shutil.rmtree(self.args.outdir)
-            error("gn gen error on '{}'".format(self.args.outdir))
+            if os.path.exists(outdir):
+                shutil.rmtree(outdir)
+            error("gn gen error on '{}'".format(outdir))
 
+        # ninja build
         ninja_build_cmd = " ".join(
-            [self.ninja, "-C", self.args.outdir, ('-v' if self.args.verbose else '')])
+            [self.ninja, "-C", outdir, ('-v' if self.args.verbose else '')])
         self.verbose(ninja_build_cmd)
 
         ret = subprocess.run(ninja_build_cmd, shell=True)
         etime = time.time()
         if (ret.returncode == 0):
-            print("\033[32m>>> Building action finished cost time: %.3fms\033[0m" %
+            print("\033[32m>>> Building finished cost time: %.3fms\033[0m" %
                   float(etime - stime), flush=True)
         else:
-            print("\033[31m>>> Building action error cost time: %.3fms\033[0m" %
+            print("\033[31m>>> Building error cost time: %.3fms\033[0m" %
                   float(etime - stime), flush=True)
+
+        # build finish
+        print("\n")
 
         return (ret.check_returncode)
 
@@ -233,18 +220,28 @@ class Build:
 def main():
     build = Build(build_argparse())
 
+    # proxy
+    if build.args.proxy != None:
+        os.environ['MDS_PROXY'] = build.args.proxy
+
     # check
     build.check_git()
     build.check_gn()
     build.check_ninja()
 
-    if build.args.action == "c" or build.args.action == "check":
-        return
+    if build.args.buildir == None:
+        error("no input buildir")
+    elif not os.path.exists(os.path.join(build.args.buildir, "BUILD.gn")):
+        error("no BUILD.gn in '{}'".format(build.args.buildir))
 
-    if build.args.action == "r" or build.args.action == "rebuild":
-        build.clean()
-
-    return (build.build())
+    if build.args.dotfile == None:
+        if not os.path.exists(os.path.join(build.args.buildir, "dotfile")):
+            error("no dotfile dir in '{}'".format(build.args.buildir))
+        for d in os.listdir(os.path.join(build.args.buildir, "dotfile")):
+            if d.endswith('.gn'):
+                build.build(d[:-3])
+    else:
+        build.build(build.args.dotfile)
 
 
 if '__main__' == __name__:

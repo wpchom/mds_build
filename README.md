@@ -9,5 +9,5 @@ mds_build is a python script to build with 'gn' and 'ninja' for sources.
 - ninja
 
 ## usage
-see mds_demo help.
+see mds_demo
 

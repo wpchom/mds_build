@@ -1,5 +1,5 @@
 declare_args() {
-  cmsis_pkg = "cmsis"
+  cmsis_pkg = "chip/cmsis"
   cmsis_ver = "latest"
   cmsis_api = "https://api.github.com/repos/ARM-software/CMSIS_6/tags"
   cmsis_url = "https://github.com/ARM-software/CMSIS_6/archive/refs/tags/v{version}.tar.gz"

@@ -1,7 +1,7 @@
 declare_args() {
   mds_sys_pkg = "mds"
   mds_sys_ver = "master"
-  mds_sys_url = "git@github.com:wpchom/mds.git"
+  mds_sys_url = "https://github.com/wpchom/mds.git"
 }
 
 declare_args() {

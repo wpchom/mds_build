@@ -3,7 +3,7 @@ declare_args() {
 }
 
 declare_args() {
-  gd32vf103_firmware_pkg = "chip/gd32vf103_firmware"
+  gd32vf103_firmware_pkg = "chip/gd32vf103/gd32vf103_firmware"
   gd32vf103_firmware_ver = "1.3.0"
   gd32vf103_firmware_url = "https://www.gd32mcu.com/data/documents/toolSoftware/GD32VF103_Firmware_Library_V{version}.7z"
 }

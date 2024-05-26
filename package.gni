@@ -2,8 +2,8 @@ assert(defined(mds_build_dir))
 
 declare_args() {
   mds_script_dir = rebase_path("${mds_build_dir}/script")
-  mds_download_dir = rebase_path("${mds_build_dir}/../mds_pkgs/download")
-  mds_package_dir = rebase_path("${mds_build_dir}/../mds_pkgs/package")
+  mds_download_dir = rebase_path("${mds_build_dir}/../.pkgs/download")
+  mds_package_dir = rebase_path("${mds_build_dir}/../.pkgs/package")
 }
 
 template("pkggroup") {

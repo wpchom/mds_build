@@ -3,7 +3,7 @@ declare_args() {
 }
 
 declare_args() {
-  stm32h7xx_hal_driver_pkg = "chip/stm32h7xx_hal_driver"
+  stm32h7xx_hal_driver_pkg = "chip/stm32h7xx/stm32h7xx_hal_driver"
   stm32h7xx_hal_driver_ver = "latest"
   stm32h7xx_hal_driver_api = "https://api.github.com/repos/STMicroelectronics/stm32h7xx_hal_driver/tags"
   stm32h7xx_hal_driver_url = "https://github.com/STMicroelectronics/stm32h7xx_hal_driver/archive/refs/tags/v{version}.tar.gz"
@@ -32,7 +32,7 @@ declare_args() {
   }
 }
 
-pkggroup("chip/stm32h7xx_device") {
+pkggroup("chip/stm32h7xx/stm32h7xx_device") {
   deps = [ ":stm32h7xx_system" ]
 }
 
@@ -147,7 +147,7 @@ source_set("stm32h7xx_hal_driver") {
 
   public_configs = [ ":stm32h7xx_hal_driver_config" ]
 
-  public_deps = [ ":chip/stm32h7xx_device" ]
+  public_deps = [ ":chip/stm32h7xx/stm32h7xx_device" ]
 }
 
 source_set("stm32h7xx_hal_driver_ll") {
@@ -187,5 +187,5 @@ source_set("stm32h7xx_hal_driver_ll") {
 
   public_configs = [ ":stm32h7xx_hal_driver_ll_config" ]
 
-  public_deps = [ ":chip/stm32h7xx_device" ]
+  public_deps = [ ":chip/stm32h7xx/stm32h7xx_device" ]
 }

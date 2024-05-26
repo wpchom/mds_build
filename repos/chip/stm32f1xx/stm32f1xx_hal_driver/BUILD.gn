@@ -1,0 +1,129 @@
+declare_args() {
+  stm32f1xx_hal_conf_dir = ""
+}
+
+declare_args() {
+  stm32f1xx_hal_driver_pkg = "chip/stm32f1xx/stm32f1xx_hal_driver"
+  stm32f1xx_hal_driver_ver = "latest"
+  stm32f1xx_hal_driver_api = "https://api.github.com/repos/STMicroelectronics/stm32f1xx_hal_driver/tags"
+  stm32f1xx_hal_driver_url = "https://github.com/STMicroelectronics/stm32f1xx_hal_driver/archive/refs/tags/v{version}.tar.gz"
+}
+
+declare_args() {
+  if (!defined(stm32f1xx_hal_driver_dir)) {
+    stm32f1xx_hal_driver_ret = exec_script("${mds_script_dir}/package.py",
+                                           [
+                                             "${stm32f1xx_hal_driver_pkg}",
+                                             "-u=${stm32f1xx_hal_driver_url}",
+                                             "-v=${stm32f1xx_hal_driver_ver}",
+                                             "-a=${stm32f1xx_hal_driver_api}",
+                                             "-m=name:v(.*)",
+                                             "-d=${mds_download_dir}",
+                                             "-p=${mds_package_dir}",
+                                           ],
+                                           "string")
+  }
+}
+
+declare_args() {
+  if (!defined(stm32f1xx_hal_driver_dir)) {
+    print("package ${stm32f1xx_hal_driver_pkg}-${stm32f1xx_hal_driver_ret}")
+    stm32f1xx_hal_driver_dir = "${mds_package_dir}/${stm32f1xx_hal_driver_pkg}/${stm32f1xx_hal_driver_ret}/stm32f1xx_hal_driver-${stm32f1xx_hal_driver_ret}"
+  }
+}
+
+pkggroup("chip/stm32f1xx/stm32f1xx_device") {
+  deps = [ ":stm32f1xx_system" ]
+}
+
+config("stm32f1xx_hal_driver_config") {
+  include_dirs = [ "${stm32f1xx_hal_driver_dir}/Inc" ]
+
+  if (defined(stm32f1xx_hal_conf_dir) && stm32f1xx_hal_conf_dir != "") {
+    include_dirs += [ "${stm32f1xx_hal_conf_dir}" ]
+  }
+}
+
+config("stm32f1xx_hal_driver_ll_config") {
+  include_dirs = [ "${stm32f1xx_hal_driver_dir}/Inc" ]
+
+  if (defined(stm32f1xx_hal_conf_dir) && stm32f1xx_hal_conf_dir != "") {
+    include_dirs += [ "${stm32f1xx_hal_conf_dir}" ]
+  }
+}
+
+source_set("stm32f1xx_hal_driver") {
+  sources = [
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_adc.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_adc_ex.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_can.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_cec.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_cortex.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_crc.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_dac.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_dac_ex.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_dma.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_eth.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_exti.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_flash.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_flash_ex.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_gpio.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_gpio_ex.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_hcd.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_i2c.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_i2s.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_irda.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_iwdg.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_mmc.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_nand.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_nor.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_pccard.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_pcd.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_pcd_ex.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_pwr.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_rcc.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_rcc_ex.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_rtc.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_rtc_ex.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_sd.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_smartcard.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_spi.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_sram.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_tim.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_tim_ex.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_uart.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_usart.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_hal_wwdg.c",
+  ]
+
+  public_configs = [ ":stm32f1xx_hal_driver_config" ]
+
+  public_deps = [ ":chip/stm32f1xx/stm32f1xx_device" ]
+}
+
+source_set("stm32f1xx_hal_driver_ll") {
+  sources = [
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_adc.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_crc.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_dac.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_dma.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_exti.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_fsmc.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_gpio.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_i2c.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_pwr.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_rcc.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_rtc.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_sdmmc.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_spi.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_tim.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_usart.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_usb.c",
+    "${stm32f1xx_hal_driver_dir}/Src/stm32f1xx_ll_utils.c",
+  ]
+
+  public_configs = [ ":stm32f1xx_hal_driver_ll_config" ]
+
+  public_deps = [ ":chip/stm32f1xx/stm32f1xx_device" ]
+}
