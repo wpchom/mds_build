@@ -3,6 +3,7 @@ declare_args() {
 }
 
 declare_args() {
+  stm32f1xx_hal_driver_def = ""
   stm32f1xx_hal_driver_pkg = "chip/stm32f1xx/stm32f1xx_hal_driver"
   stm32f1xx_hal_driver_ver = "latest"
   stm32f1xx_hal_driver_api = "https://api.github.com/repos/STMicroelectronics/stm32f1xx_hal_driver/tags"
@@ -10,7 +11,8 @@ declare_args() {
 }
 
 declare_args() {
-  if (!defined(stm32f1xx_hal_driver_dir)) {
+  if (stm32f1xx_hal_driver_def == "") {
+    print(">> package ${stm32f1xx_hal_driver_pkg}@${stm32f1xx_hal_driver_ver}")
     stm32f1xx_hal_driver_ret = exec_script("${mds_script_dir}/package.py",
                                            [
                                              "${stm32f1xx_hal_driver_pkg}",
@@ -22,13 +24,17 @@ declare_args() {
                                              "-p=${mds_package_dir}",
                                            ],
                                            "string")
+  } else {
+    print(
+        "<< package ${stm32f1xx_hal_driver_pkg} in ${stm32f1xx_hal_driver_def}")
   }
 }
 
 declare_args() {
-  if (!defined(stm32f1xx_hal_driver_dir)) {
-    print("package ${stm32f1xx_hal_driver_pkg}-${stm32f1xx_hal_driver_ret}")
+  if (stm32f1xx_hal_driver_def == "") {
     stm32f1xx_hal_driver_dir = "${mds_package_dir}/${stm32f1xx_hal_driver_pkg}/${stm32f1xx_hal_driver_ret}/stm32f1xx_hal_driver-${stm32f1xx_hal_driver_ret}"
+  } else {
+    stm32f1xx_hal_driver_dir = stm32f1xx_hal_driver_def
   }
 }
 

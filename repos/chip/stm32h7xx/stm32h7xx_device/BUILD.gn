@@ -3,6 +3,7 @@ declare_args() {
 }
 
 declare_args() {
+  stm32h7xx_deivce_def = ""
   stm32h7xx_device_pkg = "chip/stm32h7xx/stm32h7xx_device"
   stm32h7xx_device_ver = "latest"
   stm32h7xx_device_api =
@@ -11,7 +12,8 @@ declare_args() {
 }
 
 declare_args() {
-  if (!defined(stm32h7xx_device_dir)) {
+  if (stm32h7xx_deivce_def == "") {
+    print(">> package ${stm32h7xx_device_pkg}@${stm32h7xx_device_ver}")
     stm32h7xx_device_ret = exec_script("${mds_script_dir}/package.py",
                                        [
                                          "${stm32h7xx_device_pkg}",
@@ -23,13 +25,16 @@ declare_args() {
                                          "-p=${mds_package_dir}",
                                        ],
                                        "string")
+  } else {
+    print("<< package ${stm32h7xx_device_pkg} in ${stm32h7xx_device_def}")
   }
 }
 
 declare_args() {
-  if (!defined(stm32h7xx_device_dir)) {
-    print("package ${stm32h7xx_device_pkg}-${stm32h7xx_device_ret}")
+  if (stm32h7xx_deivce_def == "") {
     stm32h7xx_device_dir = "${mds_package_dir}/${stm32h7xx_device_pkg}/${stm32h7xx_device_ret}/cmsis_device_h7-${stm32h7xx_device_ret}"
+  } else {
+    stm32h7xx_device_dir = stm32h7xx_device_def
   }
 }
 

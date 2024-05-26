@@ -1,11 +1,13 @@
 declare_args() {
+  mds_sys_def = ""
   mds_sys_pkg = "mds"
   mds_sys_ver = "master"
   mds_sys_url = "https://github.com/wpchom/mds.git"
 }
 
 declare_args() {
-  if (!defined(mds_sys_dir)) {
+  if (mds_sys_def == "") {
+    print(">> package ${mds_sys_pkg}@${mds_sys_ver}")
     mds_sys_ret = exec_script("${mds_script_dir}/package.py",
                               [
                                 "${mds_sys_pkg}",
@@ -15,13 +17,16 @@ declare_args() {
                                 "-p=${mds_package_dir}",
                               ],
                               "string")
+  } else {
+    print("<< package ${mds_sys_pkg} in ${mds_sys_def}")
   }
 }
 
 declare_args() {
-  if (!defined(mds_sys_dir)) {
-    print("package ${mds_sys_pkg}-${mds_sys_ret}")
+  if (mds_sys_def == "") {
     mds_sys_dir =
         "${mds_package_dir}/${mds_sys_pkg}/${mds_sys_ret}/mds-${mds_sys_ret}"
+  } else {
+    mds_sys_dir = mds_sys_def
   }
 }

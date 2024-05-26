@@ -20,7 +20,7 @@ group("lpc") {
 }
 
 # utils
-group("systemview") {
+group("segger_systemview") {
   public_deps =
-      [ "${mds_sys_dir}/component/systemview:mds_component_systemview" ]
+      [ "${mds_sys_dir}/component/segger_systemview:mds_component_systemview" ]
 }

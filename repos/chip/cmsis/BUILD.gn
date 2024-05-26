@@ -1,4 +1,5 @@
 declare_args() {
+  cmsis_def = ""
   cmsis_pkg = "chip/cmsis"
   cmsis_ver = "latest"
   cmsis_api = "https://api.github.com/repos/ARM-software/CMSIS_6/tags"
@@ -6,7 +7,8 @@ declare_args() {
 }
 
 declare_args() {
-  if (!defined(cmsis_dir)) {
+  if (cmsis_def == "") {
+    print(">> package ${cmsis_pkg}@${cmsis_ver}")
     cmsis_ret = exec_script("${mds_script_dir}/package.py",
                             [
                               "${cmsis_pkg}",
@@ -18,13 +20,16 @@ declare_args() {
                               "-p=${mds_package_dir}",
                             ],
                             "string")
+  } else {
+    print("<< package ${cmsis_pkg} in ${cmsis_def}")
   }
 }
 
 declare_args() {
-  if (!defined(cmsis_dir)) {
-    print("package ${cmsis_pkg}-${cmsis_ret}")
+  if (cmsis_def == "") {
     cmsis_dir = "${mds_package_dir}/${cmsis_pkg}/${cmsis_ret}/CMSIS_6-${cmsis_ret}/CMSIS"
+  } else {
+    cmsis_dir = cmsis_def
   }
 }
 

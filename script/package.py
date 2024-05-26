@@ -38,9 +38,8 @@ def unarchive(filepath, decompress_dir):
     os.chdir(decompress_dir)
 
     if shutil.which('7z') != None:
-        command = " ".join(
-            [shutil.which('7z'), "x", filepath, "-o" + decompress_dir])
-        if subprocess.run(command, shell=True, capture_output=True).returncode != 0:
+        command = [shutil.which('7z'), "x", filepath, "-o" + decompress_dir]
+        if subprocess.run(" ".join(command), shell=True, capture_output=True).returncode != 0:
             error("7z decompress '{}' to '{}' failed".format(
                 filepath, decompress_dir))
     else:
@@ -153,18 +152,19 @@ class Package:
         if not os.path.exists(download_path):
             try:
                 os.makedirs(os.path.dirname(download_path), exist_ok=True)
-                command = " ".join(
-                    ["curl", "--parallel", "-L", self.args.url, "-o", download_path+".tmp"])
+                command = ["curl", "--parallel", "-L",
+                           self.args.url, "-o", download_path+".tmp"]
                 if os.environ.get("MDS_PROXY") != None:
-                    command += ["-x", os.environ.get("MDS_PROXY"), command]
-                if subprocess.run(command, shell=True, capture_output=True).returncode != 0:
+                    command += ["-x", os.environ.get("MDS_PROXY")]
+
+                if subprocess.run(" ".join(command), shell=True, capture_output=True).returncode != 0:
                     error("package '{}' download failed".format(self.args.name))
                     return
 
                 os.rename(download_path+".tmp", download_path)
             except:
                 error("package '{}' download failed command:'{}'".format(
-                    self.args.name, command))
+                    self.args.name, " ".join(command)))
 
         if pkg_suffix == ".zip":
             unzip(download_path, package_dir)
@@ -184,9 +184,9 @@ class Package:
         if (not os.path.exists(git_download_dir)) or (not ".git" in os.listdir(git_download_dir)):
             try:
                 os.makedirs(git_download_dir, exist_ok=True)
-                command = " ".join(["git", "clone", "--depth=1", "--recursive",
-                                    "--branch="+self.args.ver, self.args.url, git_download_dir])
-                if subprocess.run(command, shell=True, capture_output=True).returncode != 0:
+                command = ["git", "clone", "--depth=1", "--recursive",
+                           "--branch="+self.args.ver, self.args.url, git_download_dir]
+                if subprocess.run(" ".join(command), shell=True, capture_output=True).returncode != 0:
                     error("git clone '{}' fail".format(self.args.url))
                 os.makedirs(git_package_dir, exist_ok=True)
                 os.rename(git_download_dir, git_package_dir)

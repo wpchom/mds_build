@@ -1,0 +1,75 @@
+declare_args() {
+  systemview_rtt_buffer_size = 2048
+  systemview_use_static_buffer = false
+  systemview_post_mortem_mode = false
+}
+
+declare_args() {
+  segger_systemview_def = ""
+  segger_systemview_pkg = "utils/segger_sysview"
+  segger_systemview_ver = "V340"
+  segger_systemview_url =
+      "https://www.segger.com/downloads/systemview/SystemView_Src_{version}.zip"
+}
+
+declare_args() {
+  if (segger_systemview_def == "") {
+    print(">> package ${segger_systemview_pkg}@${segger_systemview_ver}")
+    segger_systemview_ret = exec_script("${mds_script_dir}/package.py",
+                                       [
+                                         "${segger_systemview_pkg}",
+                                         "-u=${segger_systemview_url}",
+                                         "-v=${segger_systemview_ver}",
+                                         "-d=${mds_download_dir}",
+                                         "-p=${mds_package_dir}",
+                                       ],
+                                       "string")
+  } else {
+    print("<< package ${segger_systemview_pkg} in ${segger_systemview_def}")
+  }
+}
+
+declare_args() {
+  if (segger_systemview_def == "") {
+    segger_systemview_dir =
+        "${mds_package_dir}/${segger_systemview_pkg}/${segger_systemview_ret}/"
+  } else {
+    segger_systemview_dir = segger_systemview_def
+  }
+}
+
+config("segger_systemview_config") {
+  include_dirs = [
+    "${segger_systemview_dir}/SEGGER",
+    "${segger_systemview_dir}/Config",
+  ]
+
+  defines = [
+    "SEGGER_RTT_SECTION=\".segger.rtt\"",
+    "SEGGER_SYSVIEW_SECTION=\".segger.sysview\"",
+    "SEGGER_SYSVIEW_RTT_BUFFER_SIZE=${systemview_rtt_buffer_size}",
+  ]
+
+  if (systemview_use_static_buffer) {
+    defines += [ "SEGGER_SYSVIEW_USE_STATIC_BUFFER=1" ]
+  } else {
+    defines += [ "SEGGER_SYSVIEW_USE_STATIC_BUFFER=0" ]
+  }
+
+  if (systemview_post_mortem_mode) {
+    defines += [ "SEGGER_SYSVIEW_POST_MORTEM_MODE=1" ]
+  } else {
+    defines += [ "SEGGER_SYSVIEW_POST_MORTEM_MODE=0" ]
+  }
+}
+
+source_set("segger_systemview") {
+  sources = [
+    "${segger_systemview_dir}/SEGGER/SEGGER_RTT.c",
+    "${segger_systemview_dir}/SEGGER/SEGGER_SYSVIEW.c",
+  ]
+
+  defines = [ "RTT_USE_ASM=0" ]
+
+  public_configs = [ ":segger_systemview_config" ]
+}

@@ -1,4 +1,5 @@
 declare_args() {
+  riscv_none_elf_gcc_def = ""
   riscv_none_elf_gcc_pkg = "toolchins/riscv_none_elf_gcc-${host_os}-${host_cpu}"
   riscv_none_elf_gcc_ver = "latest"
   riscv_none_elf_gcc_api = "https://api.github.com/repos/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases"
@@ -22,7 +23,8 @@ declare_args() {
 }
 
 declare_args() {
-  if (!defined(riscv_none_elf_gcc_dir)) {
+  if (riscv_none_elf_gcc_def == "") {
+    print(">> package ${riscv_none_elf_gcc_pkg}@${riscv_none_elf_gcc_ver}")
     riscv_none_elf_gcc_ret = exec_script("${mds_script_dir}/package.py",
                                          [
                                            "${riscv_none_elf_gcc_pkg}",
@@ -34,13 +36,16 @@ declare_args() {
                                            "-p=${mds_package_dir}",
                                          ],
                                          "string")
+  } else {
+    print("<< package ${riscv_none_elf_gcc_pkg} in ${riscv_none_elf_gcc_def}")
   }
 }
 
 declare_args() {
-  if (!defined(riscv_none_elf_gcc_dir)) {
-    print("package ${riscv_none_elf_gcc_pkg}-${riscv_none_elf_gcc_ret}")
+  if (riscv_none_elf_gcc_def == "") {
     riscv_none_elf_gcc_dir = "${mds_package_dir}/${riscv_none_elf_gcc_pkg}/${riscv_none_elf_gcc_ret}/xpack-riscv-none-elf-gcc-${riscv_none_elf_gcc_ret}/bin/"
+  } else {
+    riscv_none_elf_gcc_dir = riscv_none_elf_gcc_def
   }
 }
 

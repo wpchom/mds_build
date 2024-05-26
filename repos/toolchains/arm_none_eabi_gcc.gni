@@ -1,4 +1,5 @@
 declare_args() {
+  arm_none_eabi_gcc_def = ""
   arm_none_eabi_gcc_pkg = "toolchins/arm_none_eabi_gcc-${host_os}-${host_cpu}"
   arm_none_eabi_gcc_ver = "latest"
   arm_none_eabi_gcc_api = "https://api.github.com/repos/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases"
@@ -22,7 +23,8 @@ declare_args() {
 }
 
 declare_args() {
-  if (!defined(arm_none_eabi_gcc_dir)) {
+  if (arm_none_eabi_gcc_def == "") {
+    print(">> package ${arm_none_eabi_gcc_pkg}@${arm_none_eabi_gcc_ver}")
     arm_none_eabi_gcc_ret = exec_script("${mds_script_dir}/package.py",
                                         [
                                           "${arm_none_eabi_gcc_pkg}",
@@ -34,13 +36,16 @@ declare_args() {
                                           "-p=${mds_package_dir}",
                                         ],
                                         "string")
+  } else {
+    print("<< package ${arm_none_eabi_gcc_pkg} in ${arm_none_eabi_gcc_def}")
   }
 }
 
 declare_args() {
-  if (!defined(arm_none_eabi_gcc_dir)) {
-    print("package ${arm_none_eabi_gcc_pkg}-${arm_none_eabi_gcc_ret}")
+  if (arm_none_eabi_gcc_def == "") {
     arm_none_eabi_gcc_dir = "${mds_package_dir}/${arm_none_eabi_gcc_pkg}/${arm_none_eabi_gcc_ret}/xpack-arm-none-eabi-gcc-${arm_none_eabi_gcc_ret}/bin/"
+  } else {
+    arm_none_eabi_gcc_dir = arm_none_eabi_gcc_def
   }
 }
 
