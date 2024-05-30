@@ -16,14 +16,14 @@ declare_args() {
   if (segger_systemview_def == "") {
     print(">> package ${segger_systemview_pkg}@${segger_systemview_ver}")
     segger_systemview_ret = exec_script("${mds_script_dir}/package.py",
-                                       [
-                                         "${segger_systemview_pkg}",
-                                         "-u=${segger_systemview_url}",
-                                         "-v=${segger_systemview_ver}",
-                                         "-d=${mds_download_dir}",
-                                         "-p=${mds_package_dir}",
-                                       ],
-                                       "string")
+                                        [
+                                          "${segger_systemview_pkg}",
+                                          "-u=${segger_systemview_url}",
+                                          "-v=${segger_systemview_ver}",
+                                          "-d=${mds_download_dir}",
+                                          "-p=${mds_package_dir}",
+                                        ],
+                                        "string")
   } else {
     print("<< package ${segger_systemview_pkg} in ${segger_systemview_def}")
   }
@@ -44,11 +44,7 @@ config("segger_systemview_config") {
     "${segger_systemview_dir}/Config",
   ]
 
-  defines = [
-    "SEGGER_RTT_SECTION=\".segger.rtt\"",
-    "SEGGER_SYSVIEW_SECTION=\".segger.sysview\"",
-    "SEGGER_SYSVIEW_RTT_BUFFER_SIZE=${systemview_rtt_buffer_size}",
-  ]
+  defines = [ "SEGGER_SYSVIEW_RTT_BUFFER_SIZE=${systemview_rtt_buffer_size}" ]
 
   if (systemview_use_static_buffer) {
     defines += [ "SEGGER_SYSVIEW_USE_STATIC_BUFFER=1" ]
