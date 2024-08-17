@@ -219,13 +219,13 @@ class Build:
         ret = subprocess.run(" " .join(ninja_build_cmd), shell=True)
         etime = time.time()
         if (ret.returncode == 0):
-            print("\033[32m>>> Building action finished cost time: %.3fms\033[0m" %
+            print("\033[32m>>> Building action finished cost time: %.3fms\033[0m\n" %
                   float(etime - stime), flush=True)
         else:
-            print("\033[31m>>> Building action error cost time: %.3fms\033[0m" %
+            print("\033[31m>>> Building action error cost time: %.3fms\033[0m\n" %
                   float(etime - stime), flush=True)
 
-        return (ret.check_returncode)
+        return (ret.returncode)
 
 
 def build_action(args):
