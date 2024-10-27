@@ -1,0 +1,22 @@
+import("../mds.gni")
+
+# button
+group("button") {
+  public_deps = [ "${mds_pkgdir}/component/button/:mds_component_button" ]
+}
+
+# fs
+group("fs") {
+  public_deps = [ "${mds_pkgdir}/component/fs/:mds_component_fs" ]
+}
+
+# lpc
+group("lpc") {
+  public_deps = [ "${mds_pkgdir}/component/lpc/:mds_component_lpc" ]
+}
+
+# systemview
+group("systemview") {
+  public_deps =
+      [ "${mds_pkgdir}/component/systemview/:mds_component_systemview" ]
+}

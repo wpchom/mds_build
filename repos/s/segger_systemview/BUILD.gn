@@ -1,0 +1,63 @@
+# https://www.segger.com/products/development-tools/systemview/
+
+declare_args() {
+  systemview_rtt_buffer_size = 2048
+  systemview_use_static_buffer = false
+  systemview_post_mortem_mode = false
+}
+
+declare_args() {
+  segger_systemview_pkgdef = ""
+  segger_systemview_pkgver = "V340"
+  segger_systemview_pkgurl =
+      "https://www.segger.com/downloads/systemview/SystemView_Src_{version}.zip"
+}
+
+declare_args() {
+  if (segger_systemview_pkgdef == "") {
+    print(">> package 'segger_systemview' @ ${segger_systemview_pkgver}")
+    segger_systemview_pkgdir = exec_script("${mds_script_dir}/package.py",
+                                           [
+                                             "segger_sysview",
+                                             "-u=${segger_systemview_pkgurl}",
+                                             "-v=${segger_systemview_pkgver}",
+                                             "-p=./",
+                                           ],
+                                           "string")
+  } else {
+    print("<< package 'segger_systemview in ${segger_systemview_pkgdef}")
+    segger_systemview_pkgdir = segger_systemview_pkgdef
+  }
+}
+
+config("segger_systemview_config") {
+  include_dirs = [
+    "${segger_systemview_pkgdir}/SEGGER",
+    "${segger_systemview_pkgdir}/Config",
+  ]
+
+  defines = [ "SEGGER_SYSVIEW_RTT_BUFFER_SIZE=${systemview_rtt_buffer_size}" ]
+
+  if (systemview_use_static_buffer) {
+    defines += [ "SEGGER_SYSVIEW_USE_STATIC_BUFFER=1" ]
+  } else {
+    defines += [ "SEGGER_SYSVIEW_USE_STATIC_BUFFER=0" ]
+  }
+
+  if (systemview_post_mortem_mode) {
+    defines += [ "SEGGER_SYSVIEW_POST_MORTEM_MODE=1" ]
+  } else {
+    defines += [ "SEGGER_SYSVIEW_POST_MORTEM_MODE=0" ]
+  }
+}
+
+source_set("segger_systemview") {
+  sources = [
+    "${segger_systemview_pkgdir}/SEGGER/SEGGER_RTT.c",
+    "${segger_systemview_pkgdir}/SEGGER/SEGGER_SYSVIEW.c",
+  ]
+
+  defines = [ "RTT_USE_ASM=0" ]
+
+  public_configs = [ ":segger_systemview_config" ]
+}

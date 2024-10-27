@@ -1,0 +1,19 @@
+import("../../mds.gni")
+
+# i2c
+group("i2c") {
+  public_deps =
+      [ "${pkg_mds_dir}/driver/simulate/i2c/:mds_driver_simulate_i2c" ]
+}
+
+# led
+group("led") {
+  public_deps =
+      [ "${pkg_mds_dir}/driver/simulate/led/:mds_driver_simulate_led" ]
+}
+
+# spi
+group("spi") {
+  public_deps =
+      [ "${pkg_mds_dir}/driver/simulate/spi/:mds_driver_simulate_spi" ]
+}

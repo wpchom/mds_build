@@ -1,0 +1,62 @@
+# https://github.com/STMicroelectronics/cmsis-device-h7
+
+declare_args() {
+  stm32h7xx_device_devdef = ""
+}
+
+declare_args() {
+  stm32h7xx_device_pkgdef = ""
+  stm32h7xx_device_pkgver = "latest"
+  stm32h7xx_device_pkgurl = "https://github.com/STMicroelectronics/cmsis_device_h7/archive/refs/tags/v{version}.tar.gz"
+  stm32h7xx_device_pkgapi =
+      "https://api.github.com/repos/STMicroelectronics/cmsis_device_h7/tags"
+}
+
+declare_args() {
+  if (stm32h7xx_device_pkgdef == "") {
+    print(">> package 'stm32h7xx_device' @ ${stm32h7xx_device_pkgver}")
+    stm32h7xx_device_pkgdir = exec_script("${mds_script_dir}/package.py",
+                                          [
+                                            "stm32h7xx_device",
+                                            "-v=${stm32h7xx_device_pkgver}",
+                                            "-u=${stm32h7xx_device_pkgurl}",
+                                            "-a=${stm32h7xx_device_pkgapi}",
+                                            "-m=name:v(.*)",
+                                            "-p=cmsis_device_h7-{version}",
+                                          ],
+                                          "string")
+  } else {
+    print("<< package 'stm32h7xx_device' in ${stm32h7xx_device_pkgdef}")
+    stm32h7xx_device_pkgdir = stm32h7xx_device_pkgdef
+  }
+}
+
+pkggroup("cmsis") {
+  configs = [ ":cmsis_core" ]
+}
+
+config("stm32h7xx_device_config") {
+  include_dirs = [ "${stm32h7xx_device_pkgdir}/Include" ]
+
+  if (defined(stm32h7xx_device_devdef) && stm32h7xx_device_devdef != "") {
+    defines = [ "${stm32h7xx_device_devdef}" ]
+  }
+}
+
+source_set("stm32h7xx_system") {
+  sources = [ "${stm32h7xx_device_pkgdir}/Source/Templates/system_stm32h7xx.c" ]
+
+  public_configs = [ ":stm32h7xx_device_config" ]
+
+  public_deps = [ ":cmsis" ]
+}
+
+source_set("stm32h7xx_system_singlecore") {
+  sources = [
+    "${stm32h7xx_device_pkgdir}/Source/Templates/system_stm32h7xx_singlecore.c",
+  ]
+
+  public_configs = [ ":stm32h7xx_device_config" ]
+
+  public_deps = [ ":cmsis" ]
+}

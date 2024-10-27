@@ -1,0 +1,31 @@
+# https://github.com/ARM-software/CMSIS_6
+
+declare_args() {
+  cmsis_pkgdef = ""
+  cmsis_pkgver = "latest"
+  cmsis_pkgurl = "https://github.com/ARM-software/CMSIS_6/archive/refs/tags/v{version}.tar.gz"
+  cmsis_pkgapi = "https://api.github.com/repos/ARM-software/CMSIS_6/tags"
+}
+
+declare_args() {
+  if (cmsis_pkgdef == "") {
+    print(">> package 'cmsis' @ ${cmsis_pkgver}")
+    cmsis_pkgdir = exec_script("${mds_script_dir}/package.py",
+                               [
+                                 "cmsis",
+                                 "-v=${cmsis_pkgver}",
+                                 "-u=${cmsis_pkgurl}",
+                                 "-a=${cmsis_pkgapi}",
+                                 "-m=name:v(.*)",
+                                 "-p=CMSIS_6-{version}/CMSIS",
+                               ],
+                               "string")
+  } else {
+    print("<< package 'cmsis' in ${cmsis_pkgdef}")
+    cmsis_pkgdir = cmsis_pkgdef
+  }
+}
+
+config("cmsis_core") {
+  include_dirs = [ "${cmsis_pkgdir}/Core/Include" ]
+}

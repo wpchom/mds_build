@@ -1,31 +1,27 @@
 assert(defined(mds_build_dir))
 
 declare_args() {
-  mds_script_dir = rebase_path("${mds_build_dir}/script")
-  mds_download_dir = rebase_path("${mds_build_dir}/pkgs/download")
-  mds_package_dir = rebase_path("${mds_build_dir}/pkgs/package")
+  mds_script_dir = rebase_path("${mds_build_dir}/scripts")
 }
 
 template("pkggroup") {
   group(target_name) {
-    if (defined(invoker.package)) {
-      package = invoker.package
-    } else {
-      package = target_name
-    }
+    pkg_targer_dir = exec_script("${mds_build_dir}/scripts/package.py",
+                                 [ "${target_name}" ],
+                                 "string")
 
     public_deps = []
     public_configs = []
 
     if (defined(invoker.deps)) {
       foreach(d, invoker.deps) {
-        public_deps += [ "${mds_build_dir}/repos/${package}/" + d ]
+        public_deps += [ "${pkg_targer_dir}/" + d ]
       }
     }
 
     if (defined(invoker.configs)) {
       foreach(c, invoker.configs) {
-        public_configs += [ "${mds_build_dir}/repos/${package}/" + c ]
+        public_configs += [ "${pkg_targer_dir}" + c ]
       }
     }
   }

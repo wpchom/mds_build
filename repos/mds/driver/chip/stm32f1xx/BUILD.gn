@@ -1,6 +1,0 @@
-import("../../../mds.gni")
-
-group("chip_stm32f1xx_driver") {
-  public_deps =
-      [ "${mds_sys_dir}/driver/chip/stm32f1xx/:chip_stm32f1xx_driver" ]
-}

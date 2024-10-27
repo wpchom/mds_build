@@ -1,0 +1,176 @@
+declare_args() {
+  riscv_none_elf_gcc_pkgdef = ""
+  riscv_none_elf_gcc_pkgver = "latest"
+  riscv_none_elf_gcc_pkgurl = "https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v{version}/xpack-riscv-none-elf-gcc-{version}"
+  riscv_none_elf_gcc_pkgapi = "https://api.github.com/repos/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases"
+
+  if (host_os == "windows") {
+    riscv_none_elf_gcc_pkgurl += "-win32-x64.zip"
+  } else if (host_os == "linux") {
+    if (host_cpu == "arm64") {
+      riscv_none_elf_gcc_pkgurl += "-linux-arm64.tar.gz"
+    } else {
+      riscv_none_elf_gcc_pkgurl += "-linux-x64.tar.gz"
+    }
+  } else if (host_os == "mac") {
+    if (host_cpu == "arm64") {
+      riscv_none_elf_gcc_pkgurl += "-darwin-arm64.tar.gz"
+    } else {
+      riscv_none_elf_gcc_pkgurl += "-darwin-arm64.tar.gz"
+    }
+  }
+}
+
+declare_args() {
+  if (riscv_none_elf_gcc_pkgdef == "") {
+    print(">> package 'riscv-none-elf-gcc' @ ${riscv_none_elf_gcc_pkgver}")
+    riscv_none_elf_gcc_pkgdir =
+        exec_script("${mds_script_dir}/package.py",
+                    [
+                      "riscv_none_elf_gcc-${host_os}-${host_cpu}",
+                      "-u=${riscv_none_elf_gcc_pkgurl}",
+                      "-v=${riscv_none_elf_gcc_pkgver}",
+                      "-a=${riscv_none_elf_gcc_pkgapi}",
+                      "-m=tag_name:v(.*)",
+                      "-p=xpack-riscv-none-elf-gcc-{version}/bin/",
+                    ],
+                    "string")
+  } else {
+    print("<< package 'riscv-none-elf-gcc' in ${riscv_none_elf_gcc_pkgdef}")
+    riscv_none_elf_gcc_pkgdir = riscv_none_elf_gcc_pkgdef
+  }
+}
+
+template("riscv_none_elf_toolchain") {
+  not_needed(invoker, "*")
+  if (defined(invoker.ccache)) {
+    ccache = invoker.ccache
+  } else {
+    ccache = ""
+  }
+
+  toolchain(target_name) {
+    asm = rebase_path("riscv-none-elf-gcc", "", riscv_none_elf_gcc_pkgdir)
+    cc = rebase_path("riscv-none-elf-gcc", "", riscv_none_elf_gcc_pkgdir)
+    cxx = rebase_path("riscv-none-elf-g++", "", riscv_none_elf_gcc_pkgdir)
+    alink = rebase_path("riscv-none-elf-ar", "", riscv_none_elf_gcc_pkgdir)
+    solink = rebase_path("riscv-none-elf-g++", "", riscv_none_elf_gcc_pkgdir)
+    link = rebase_path("riscv-none-elf-g++", "", riscv_none_elf_gcc_pkgdir)
+
+    lib_switch = "-l"
+    lib_dir_switch = "-L"
+
+    tool("asm") {
+      depfile = "{{output}}.d"
+      command = "${ccache} ${asm} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{asmflags}} -c {{source}} -o {{output}}"
+      depsformat = "gcc"
+      description = "AS {{output}}"
+      outputs = [ "{{source_out_dir}}/{{source_name_part}}.o" ]
+    }
+
+    tool("cc") {
+      depfile = "{{output}}.d"
+      command = "${ccache} ${cc} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
+      depsformat = "gcc"
+      description = "CC {{output}}"
+      outputs = [ "{{source_out_dir}}/{{source_name_part}}.o" ]
+    }
+
+    tool("cxx") {
+      depfile = "{{output}}.d"
+      command = "${ccache} ${cxx} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
+      depsformat = "gcc"
+      description = "CXX {{output}}"
+      outputs = [ "{{source_out_dir}}/{{source_name_part}}.o" ]
+    }
+
+    tool("alink") {
+      outname = "{{target_output_name}}{{output_extension}}"
+      outfile = "{{output_dir}}/$outname"
+
+      rspfile = outname + ".rsp"
+      rspfile_content = "{{inputs}}"
+
+      command = "${ccache} ${alink} rcsD {{arflags}} {{output}} @${rspfile}"
+      description = "AR $outname"
+      outputs = [ outfile ]
+
+      default_output_dir = "{{target_out_dir}}"
+      default_output_extension = ".a"
+      output_prefix = "lib"
+    }
+
+    tool("solink") {
+      soname = "{{target_output_name}}{{output_extension}}"
+      sofile = "{{output_dir}}/$soname"
+
+      rspfile = "${soname}.rsp"
+      rspfile_content = "-Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}}"
+
+      command = "${ccache} ${solink} -shared {{ldflags}} -o ${sofile} -Wl,-soname=$soname @${rspfile}"
+      description = "SOLINK $soname"
+      outputs = [ sofile ]
+
+      link_output = sofile
+      depend_output = sofile
+
+      # default_output_dir = "{{root_out_dir}}"
+      default_output_extension = ".so"
+      output_prefix = "lib"
+    }
+
+    tool("link") {
+      outname = "{{target_output_name}}{{output_extension}}"
+      outfile = "{{output_dir}}/$outname"
+
+      rspfile = "${outfile}.rsp"
+      rspfile_content = "{{inputs}}"
+
+      command = "${ccache} ${link} {{ldflags}} -o ${outfile} -Wl,--start-group @${rspfile} {{libs}} {{solibs}} -Wl,--end-group"
+      description = "LINK $outfile"
+      outputs = [ outfile ]
+
+      default_output_dir = "{{root_out_dir}}"
+      default_output_extension = ".elf"
+    }
+
+    tool("stamp") {
+      if (host_os == "win") {
+        command = "type nul > {{output}}"
+      } else {
+        command = "touch {{output}}"
+      }
+      description = "STAMP {{output}}"
+    }
+
+    tool("copy") {
+      if (host_os == "win") {
+        command = "xcopy /-Y  {{source}} {{output}}"
+      } else {
+        command = "cp -af {{source}} {{output}}"
+      }
+      description = "COPY {{source}} {{output}}"
+    }
+  }
+}
+
+template("riscv_none_elf_action") {
+  assert(invoker.action != "")
+  assert(defined(riscv_none_elf_gcc_pkgdir))
+
+  action(target_name) {
+    forward_variables_from(invoker,
+                           "*",
+                           [
+                             "script",
+                             "args",
+                           ])
+
+    script = "${mds_script_dir}/run.py"
+    args = [ rebase_path(invoker.action, "", riscv_none_elf_gcc_pkgdir) ]
+
+    if (defined(invoker.args)) {
+      args += invoker.args
+    }
+  }
+}

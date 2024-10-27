@@ -1,0 +1,51 @@
+# https://www.gd32mcu.com/cn/download/0?kw=GD32VF1
+
+declare_args() {
+  gd32vf103_hxtal_value = 8000
+}
+
+declare_args() {
+  gd32vf103_firmware_pkgdef = ""
+  gd32vf103_firmware_pkgver = "1.3.0"
+  gd32vf103_firmware_pkgurl = "https://www.gd32mcu.com/data/documents/toolSoftware/GD32VF103_Firmware_Library_V{version}.7z"
+}
+
+declare_args() {
+  if (gd32vf103_firmware_pkgdef == "") {
+    print(">> package 'gd32vf103_firmware' @ ${gd32vf103_firmware_pkgver}")
+    gd32vf103_firmware_pkgdir =
+        exec_script("${mds_script_dir}/package.py",
+                    [
+                      "gd32vf103_firmware",
+                      "-u=${gd32vf103_firmware_pkgurl}",
+                      "-v=${gd32vf103_firmware_pkgver}",
+                      "-p=GD32VF103_Firmware_Library_V{version}",
+                    ],
+                    "string")
+  } else {
+    print("<< package 'gd32vf103_firmware' in ${gd32vf103_firmware_pkgdef}")
+    gd32vf103_firmware_pkgdir = gd32vf103_firmware_pkgdef
+  }
+}
+
+config("gd32vf103_firmware_config") {
+  include_dirs = [
+    "${gd32vf103_firmware_pkgdir}/Firmware/GD32VF103_standard_peripheral/",
+    "${gd32vf103_firmware_pkgdir}/Firmware/GD32VF103_standard_peripheral/Include",
+    "${gd32vf103_firmware_pkgdir}/Firmware/RISCV/drivers",
+    "${gd32vf103_firmware_pkgdir}/Template/",
+  ]
+
+  if (defined(gd32vf103_hxtal_value) && gd32vf103_hxtal_value != "") {
+    defines = [ "HXTAL_VALUE=${gd32vf103_hxtal_value}" ]
+  }
+}
+
+source_set("gd32vf103_firmware") {
+  sources = [
+    "${gd32vf103_firmware_pkgdir}/Firmware/GD32VF103_standard_peripheral/system_gd32vf103.c",
+    "${gd32vf103_firmware_pkgdir}/Firmware/RISCV/drivers/n200_func.c",
+  ]
+
+  public_configs = [ ":gd32vf103_firmware_config" ]
+}

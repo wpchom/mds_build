@@ -1,0 +1,52 @@
+# https://github.com/STMicroelectronics/cmsis-device-f1
+
+declare_args() {
+  stm32f1xx_device_devdef = ""
+}
+
+declare_args() {
+  stm32f1xx_device_pkgdef = ""
+  stm32f1xx_device_pkgver = "latest"
+  stm32f1xx_device_pkgurl = "https://github.com/STMicroelectronics/cmsis_device_f1/archive/refs/tags/v{version}.tar.gz"
+  stm32f1xx_device_pkgapi =
+      "https://api.github.com/repos/STMicroelectronics/cmsis_device_f1/tags"
+}
+
+declare_args() {
+  if (stm32f1xx_device_pkgdef == "") {
+    print(">> package 'stm32f1xx_device' @ ${stm32f1xx_device_pkgver}")
+    stm32f1xx_device_pkgdir = exec_script("${mds_script_dir}/package.py",
+                                          [
+                                            "stm32f1xx_device",
+                                            "-v=${stm32f1xx_device_pkgver}",
+                                            "-u=${stm32f1xx_device_pkgurl}",
+                                            "-a=${stm32f1xx_device_pkgapi}",
+                                            "-m=name:v(.*)",
+                                            "-p=cmsis-device-f1-{version}",
+                                          ],
+                                          "string")
+  } else {
+    print("<< package 'stm32f1xx_device' in ${stm32f1xx_device_pkgdef}")
+    stm32f1xx_device_pkgdir = stm32f1xx_device_pkgdef
+  }
+}
+
+pkggroup("cmsis") {
+  configs = [ ":cmsis_core" ]
+}
+
+config("stm32f1xx_device_config") {
+  include_dirs = [ "${stm32f1xx_device_pkgdir}/Include" ]
+
+  if (defined(stm32f1xx_device_devdef) && stm32f1xx_device_devdef != "") {
+    defines = [ "${stm32f1xx_device_devdef}" ]
+  }
+}
+
+source_set("stm32f1xx_system") {
+  sources = [ "${stm32f1xx_device_pkgdir}/Source/Templates/system_stm32f1xx.c" ]
+
+  public_configs = [ ":stm32f1xx_device_config" ]
+
+  public_deps = [ ":cmsis" ]
+}
