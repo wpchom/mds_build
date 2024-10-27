@@ -1,12 +1,14 @@
 # https://github.com/google/googletest
 
 declare_args() {
+  googletest_with_main = true
+  googletest_with_gmock = true
 }
 
 declare_args() {
   googletest_pkgdef = ""
   googletest_pkgver = "latest"
-  googletest_pkgurl = "https://github.com/google/googletest/archive/refs/tags/release-{version}.tar.gz"
+  googletest_pkgurl = "https://github.com/google/googletest/releases/download/v{version}/googletest-{version}.tar.gz"
   googletest_pkgapi = "https://api.github.com/repos/google/googletest/tags"
 }
 
@@ -29,30 +31,30 @@ declare_args() {
   }
 }
 
-config("googletest_config") {
+config("gtest_config") {
   include_dirs = [ "${googletest_pkgdir}/googletest/include" ]
+
+  if (googletest_with_gmock) {
+    include_dirs += [ "${googletest_pkgdir}/googlemock/include" ]
+  }
 }
 
-config("googlemock_config") {
-  include_dirs = [ "${googletest_pkgdir}/googlemock/include" ]
-}
+static_library("gtest") {
+  sources = [ "${googletest_pkgdir}/googletest/src/gtest-all.cc" ]
+  include_dirs = [ "${googletest_pkgdir}/googletest" ]
 
-source_set("googletest") {
-  sources = [
-    "${googletest_pkgdir}/googletest/src/gtest-all.cc",
-    "${googletest_pkgdir}/googletest/src/gtest.cc",
-    "${googletest_pkgdir}/googletest/src/gtest_main.cc",
-  ]
+  if (googletest_with_gmock) {
+    sources += [ "${googletest_pkgdir}/googlemock/src/gmock-all.cc" ]
+    include_dirs += [ "${googletest_pkgdir}/googlemock" ]
+  }
 
-  public_configs = [ ":googletest_config" ]
-}
+  if (googletest_with_main) {
+    if (googletest_with_gmock) {
+      sources += [ "${googletest_pkgdir}/googlemock/src/gmock_main.cc" ]
+    } else {
+      sources += [ "${googletest_pkgdir}/googletest/src/gtest_main.cc" ]
+    }
+  }
 
-source_set("googlemock") {
-  sources = [
-    "${googletest_pkgdir}/googlemock/src/gmock-all.cc",
-    "${googletest_pkgdir}/googlemock/src/gmock.cc",
-    "${googletest_pkgdir}/googlemock/src/gmock_main.cc",
-  ]
-
-  public_configs = [ ":googlemock_config" ]
+  public_configs = [ ":gtest_config" ]
 }
