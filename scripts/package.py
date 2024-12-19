@@ -9,17 +9,19 @@ import subprocess
 
 
 MDS_BUILD_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+MDS_CACHE_DIR = os.path.join(os.path.expanduser("~"), ".mds_cache")
 
 
 def pkg_repos_dir(args):
-    repos_path = os.path.join(MDS_BUILD_DIR, "repos", args.name[0], args.name)
+    repos_path = os.path.join(
+        MDS_BUILD_DIR, "packages", args.name[0], args.name)
 
     return (repos_path)
 
 
 def pkg_download_dir(args):
     download_path = os.path.join(
-        MDS_BUILD_DIR, "pkgs", "download", args.name[0], args.name)
+        MDS_CACHE_DIR, "download", args.name[0], args.name)
     download_fext = args.url.split(".")[-1]
 
     if args.url.split(".")[-2] == "tar":
@@ -29,7 +31,7 @@ def pkg_download_dir(args):
 
 
 def pkg_resource_dir(args):
-    resource_dir = os.path.join(MDS_BUILD_DIR, "pkgs",
+    resource_dir = os.path.join(MDS_CACHE_DIR,
                                 "resource", args.name[0], args.name, "{}-{}".format(args.name, args.ver))
 
     return (resource_dir)

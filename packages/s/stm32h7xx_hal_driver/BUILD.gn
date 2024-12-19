@@ -42,7 +42,8 @@ pkggroup("stm32h7xx_device") {
 config("stm32h7xx_hal_driver_config") {
   include_dirs = [ "${stm32h7xx_hal_driver_pkgdir}/Inc" ]
 
-  if (defined(stm32h7xx_hal_driver_confdir) && stm32h7xx_hal_driver_confdir != "") {
+  if (defined(stm32h7xx_hal_driver_confdir) &&
+      stm32h7xx_hal_driver_confdir != "") {
     include_dirs += [ "${stm32h7xx_hal_driver_confdir}" ]
   }
 }
@@ -50,7 +51,8 @@ config("stm32h7xx_hal_driver_config") {
 config("stm32h7xx_hal_driver_ll_config") {
   include_dirs = [ "${stm32h7xx_hal_driver_pkgdir}/Inc" ]
 
-  if (defined(stm32h7xx_hal_driver_confdir) && stm32h7xx_hal_driver_confdir != "") {
+  if (defined(stm32h7xx_hal_driver_confdir) &&
+      stm32h7xx_hal_driver_confdir != "") {
     include_dirs += [ "${stm32h7xx_hal_driver_confdir}" ]
   }
 }

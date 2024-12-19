@@ -7,7 +7,8 @@ import argparse
 import platform
 import subprocess
 
-MDS_BUILD_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+MDS_BUILD_DIR = os.path.dirname(os.path.realpath(__file__))
+MDS_CACHE_DIR = os.path.join(os.path.expanduser("~"), ".mds_cache")
 
 
 def error(message):
@@ -63,8 +64,8 @@ def check_gn(proxy):
     plat_mach = platform.uname().machine.lower()
     plat_mach = "arm64" if plat_mach == "aarch64" else plat_mach
 
-    gn_bin = os.path.join(
-        MDS_BUILD_DIR, "pkgs", "bin", "gn-{}-{}/gn".format(plat_sys, plat_mach))
+    gn_bin = os.path.join(MDS_CACHE_DIR, "bin",
+                          "gn-{}-{}/gn".format(plat_sys, plat_mach))
     if not os.path.exists(gn_bin):
         gn_download_url = "https://chrome-infra-packages.appspot.com/dl/gn/gn/{}-{}/+/latest".format(
             plat_sys, plat_mach)
@@ -94,8 +95,8 @@ def check_ninja(proxy):
     plat_sys = platform.uname().system.lower()
     plat_sys = "mac" if plat_sys == "darwin" else plat_sys
 
-    ninja_bin = os.path.join(
-        MDS_BUILD_DIR, "pkgs", "bin", "ninja-{}/ninja".format(plat_sys))
+    ninja_bin = os.path.join(MDS_CACHE_DIR, "bin",
+                             "ninja-{}/ninja".format(plat_sys))
     if not os.path.exists(ninja_bin):
         ninja_download_url = "https://github.com/ninja-build/ninja/releases/latest/download/ninja-{}.zip".format(
             plat_sys)
@@ -115,13 +116,14 @@ def check_ninja(proxy):
 
 def build_argparse():
     parser = argparse.ArgumentParser(
-        description="build.py [-b buildir] [-f dotfile] [-o outdit] [-v]")
+        description="build.py [-o outdit] [-v] [-r] [-k] [-x proxy] dotfile")
 
-    parser.add_argument("-b", "--buildir", type=str, required=True,
+    parser.add_argument("dotfile", type=str,
+                        help="build dotfile name in buildir profile dir")
+
+    parser.add_argument("-b", "--buildir", type=str, default=None,
                         help="gn root directory")
-    parser.add_argument("-f", "--dotfile", type=str, required=True,
-                        help="gn build dotfile")
-    parser.add_argument("-o", "--outdir", type=str, required=True,
+    parser.add_argument("-o", "--outdir", type=str, default=os.path.join(os.getcwd(), "outdir"),
                         help="gn output directory")
 
     parser.add_argument("-k", "--update", action="store_true", default=False,
@@ -140,6 +142,28 @@ def build_argparse():
 
     if args.proxy != None:
         os.environ['MDS_BUILD_PROXY'] = args.proxy
+
+    def project_name(gnfile):
+        for line in gnfile.readlines():
+            if line.strip().startswith('project_name'):
+                return line.split('=')[1].strip().strip('"\'')
+        return None
+
+    args.dotfile = os.path.abspath(args.dotfile)
+
+    if args.buildir == None:
+        args.buildir = os.path.abspath(
+            os.path.join(os.path.dirname(args.dotfile), ".."))
+
+    projname = project_name(open(args.dotfile))
+    if projname == None:
+        projname = project_name(
+            open(os.path.join(args.buildir, "BUILDCONFIG.gn")))
+    if projname == None:
+        projname = os.path.basename(args.buildir)
+
+    args.outdir = os.path.join(
+        args.outdir, projname, os.path.basename(args.dotfile).split('.')[0])
 
     return (args)
 
@@ -183,8 +207,7 @@ class Build:
 
         cmd_gn_build = ['gen', self.args.outdir]
         cmd_gn_build += ['--root=%s' % self.args.buildir]
-        cmd_gn_build += ['--dotfile=%s' %
-                         os.path.join(self.args.buildir, self.args.dotfile)]
+        cmd_gn_build += ['--dotfile=%s' % self.args.dotfile]
 
         cmd_gn_build += ['--args=%s' %
                          ' '.join(['mds_build_dir=\"%s\"' % MDS_BUILD_DIR] +
