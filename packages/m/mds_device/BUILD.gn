@@ -1,0 +1,27 @@
+# "https://github.com/wpchom/mds_device.git"
+
+declare_args() {
+  mds_device_pkgdef = ""
+  mds_device_pkgver = "develop"
+  mds_device_pkgurl = "https://github.com/wpchom/mds_device.git"
+}
+
+declare_args() {
+  if (mds_device_pkgdef == "") {
+    print(">> package 'mds_device' @ ${mds_device_pkgver}")
+    mds_device_pkgdir = exec_script("${mds_build_dir}/scripts/package.py",
+                                    [
+                                      "mds_device",
+                                      "-v=${mds_device_pkgver}",
+                                      "-u=${mds_device_pkgurl}",
+                                    ],
+                                    "string")
+  } else {
+    print("<< package 'mds_device' in ${mds_device_pkgdef}")
+    mds_device_pkgdir = mds_device_pkgdef
+  }
+}
+
+group("mds_device") {
+  public_deps = [ "${mds_device_pkgdir}/:mds_device" ]
+}

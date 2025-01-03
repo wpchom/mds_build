@@ -1,5 +1,0 @@
-import("../../../mds.gni")
-
-group("drv_chip_gd32vf103") {
-  public_deps = [ "${mds_pkgdir}/driver/chip/gd32vf103/:drv_chip_gd32vf103" ]
-}

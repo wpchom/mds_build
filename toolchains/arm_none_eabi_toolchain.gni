@@ -1,0 +1,3 @@
+import(exec_script("${mds_build_dir}/scripts/package.py",
+                   [ "arm_none_eabi_toolchain" ],
+                   "string") + "/BUILD.gn")

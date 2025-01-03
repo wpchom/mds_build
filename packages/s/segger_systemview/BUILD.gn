@@ -16,7 +16,7 @@ declare_args() {
 declare_args() {
   if (segger_systemview_pkgdef == "") {
     print(">> package 'segger_systemview' @ ${segger_systemview_pkgver}")
-    segger_systemview_pkgdir = exec_script("${mds_script_dir}/package.py",
+    segger_systemview_pkgdir = exec_script("${mds_build_dir}/scripts/package.py",
                                            [
                                              "segger_sysview",
                                              "-u=${segger_systemview_pkgurl}",

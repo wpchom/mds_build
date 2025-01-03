@@ -1,0 +1,27 @@
+# "https://github.com/wpchom/mds_kernel.git"
+
+declare_args() {
+  mds_kernel_pkgdef = ""
+  mds_kernel_pkgver = "develop"
+  mds_kernel_pkgurl = "https://github.com/wpchom/mds_kernel.git"
+}
+
+declare_args() {
+  if (mds_kernel_pkgdef == "") {
+    print(">> package 'mds_kernel' @ ${mds_kernel_pkgver}")
+    mds_kernel_pkgdir = exec_script("${mds_build_dir}/scripts/package.py",
+                                    [
+                                      "mds_kernel",
+                                      "-v=${mds_kernel_pkgver}",
+                                      "-u=${mds_kernel_pkgurl}",
+                                    ],
+                                    "string")
+  } else {
+    print("<< package 'mds_kernel' in ${mds_kernel_pkgdef}")
+    mds_kernel_pkgdir = mds_kernel_pkgdef
+  }
+}
+
+group("mds_kernel") {
+  public_deps = [ "${mds_kernel_pkgdir}/:mds_kernel" ]
+}

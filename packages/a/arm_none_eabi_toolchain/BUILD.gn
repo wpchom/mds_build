@@ -1,22 +1,36 @@
 declare_args() {
   arm_none_eabi_gcc_pkgdef = ""
-  arm_none_eabi_gcc_pkgver = "latest"
-  arm_none_eabi_gcc_pkgurl = "https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases/download/v{version}/xpack-arm-none-eabi-gcc-{version}"
-  arm_none_eabi_gcc_pkgapi = "https://api.github.com/repos/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases"
+  arm_none_eabi_gcc_pkgver = "14.2.rel1"
 
   if (host_os == "windows") {
-    arm_none_eabi_gcc_pkgurl += "-win32-x64.zip"
+    if (host_cpu == "x86") {
+      arm_none_eabi_gcc_pkgurl = "https://developer.arm.com/-/media/Files/downloads/gnu/{version}/binrel/arm-gnu-toolchain-{version}-mingw-w64-i686-arm-none-eabi.zip"
+      arm_none_eabi_gcc_pkgbin =
+          "arm-gnu-toolchain-{version}-mingw-w64-i686-arm-none-eabi/bin"
+    } else {
+      arm_none_eabi_gcc_pkgurl = "https://developer.arm.com/-/media/Files/downloads/gnu/{version}/binrel/arm-gnu-toolchain-{version}-mingw-w64-x86_64-arm-none-eabi.zip"
+      arm_none_eabi_gcc_pkgbin =
+          "arm-gnu-toolchain-{version}-mingw-w64-x86_64-arm-none-eabi/bin"
+    }
   } else if (host_os == "linux") {
     if (host_cpu == "arm64") {
-      arm_none_eabi_gcc_pkgurl += "-linux-arm64.tar.gz"
+      arm_none_eabi_gcc_pkgurl = "https://developer.arm.com/-/media/Files/downloads/gnu/{version}/binrel/arm-gnu-toolchain-{version}-aarch64-arm-none-eabi.tar.xz"
+      arm_none_eabi_gcc_pkgbin =
+          "arm-gnu-toolchain-{version}-aarch64-arm-none-eabi/bin"
     } else {
-      arm_none_eabi_gcc_pkgurl += "-linux-x64.tar.gz"
+      arm_none_eabi_gcc_pkgurl = "https://developer.arm.com/-/media/Files/downloads/gnu/{version}/binrel/arm-gnu-toolchain-{version}-x86_64-arm-none-eabi.tar.xz"
+      arm_none_eabi_gcc_pkgbin =
+          "arm-gnu-toolchain-{version}-x86_64-arm-none-eabi/bin"
     }
   } else if (host_os == "mac") {
     if (host_cpu == "arm64") {
-      arm_none_eabi_gcc_pkgurl += "-darwin-arm64.tar.gz"
+      arm_none_eabi_gcc_pkgurl = "https://developer.arm.com/-/media/Files/downloads/gnu/{version}/binrel/arm-gnu-toolchain-{version}-darwin-arm64-arm-none-eabi.tar.xz"
+      arm_none_eabi_gcc_pkgbin =
+          "arm-gnu-toolchain-{version}-darwin-arm64-arm-none-eabi/bin"
     } else {
-      arm_none_eabi_gcc_pkgurl += "-darwin-arm64.tar.gz"
+      arm_none_eabi_gcc_pkgurl = "https://developer.arm.com/-/media/Files/downloads/gnu/{version}/binrel/arm-gnu-toolchain-{version}-darwin-x86_64-arm-none-eabi.tar.xz"
+      arm_none_eabi_gcc_pkgbin =
+          "arm-gnu-toolchain-{version}-darwin-x86_64-arm-none-eabi/bin"
     }
   }
 }
@@ -25,14 +39,12 @@ declare_args() {
   if (arm_none_eabi_gcc_pkgdef == "") {
     print(">> package 'arm_none_eabi_gcc' @ ${arm_none_eabi_gcc_pkgver}")
     arm_none_eabi_gcc_pkgdir =
-        exec_script("${mds_script_dir}/package.py",
+        exec_script("${mds_build_dir}/scripts/package.py",
                     [
                       "arm_none_eabi_gcc-${host_os}-${host_cpu}",
                       "-v=${arm_none_eabi_gcc_pkgver}",
                       "-u=${arm_none_eabi_gcc_pkgurl}",
-                      "-a=${arm_none_eabi_gcc_pkgapi}",
-                      "-m=tag_name:v(.*)",
-                      "-p=xpack-arm-none-eabi-gcc-{version}/bin/",
+                      "-p=${arm_none_eabi_gcc_pkgbin}",
                     ],
                     "string")
   } else {
@@ -42,20 +54,24 @@ declare_args() {
 }
 
 template("arm_none_eabi_toolchain") {
-  not_needed(invoker, "*")
-  if (defined(invoker.ccache)) {
-    ccache = invoker.ccache
-  } else {
-    ccache = ""
-  }
-
   toolchain(target_name) {
-    asm = rebase_path("arm-none-eabi-gcc", "", arm_none_eabi_gcc_pkgdir)
-    cc = rebase_path("arm-none-eabi-gcc", "", arm_none_eabi_gcc_pkgdir)
-    cxx = rebase_path("arm-none-eabi-g++", "", arm_none_eabi_gcc_pkgdir)
-    alink = rebase_path("arm-none-eabi-ar", "", arm_none_eabi_gcc_pkgdir)
-    solink = rebase_path("arm-none-eabi-g++", "", arm_none_eabi_gcc_pkgdir)
-    link = rebase_path("arm-none-eabi-g++", "", arm_none_eabi_gcc_pkgdir)
+    not_needed(invoker, "*")
+
+    ccache =
+        exec_script("${mds_build_dir}/scripts/which.py", [ "ccache" ], "string")
+
+    if (defined(invoker.prefix)) {
+      prefix = invoker.prefix
+    } else {
+      prefix = "arm-none-eabi-"
+    }
+
+    asm = rebase_path("${prefix}gcc", "", arm_none_eabi_gcc_pkgdir)
+    cc = rebase_path("${prefix}gcc", "", arm_none_eabi_gcc_pkgdir)
+    cxx = rebase_path("${prefix}g++", "", arm_none_eabi_gcc_pkgdir)
+    alink = rebase_path("${prefix}ar", "", arm_none_eabi_gcc_pkgdir)
+    solink = rebase_path("${prefix}g++", "", arm_none_eabi_gcc_pkgdir)
+    link = rebase_path("${prefix}g++", "", arm_none_eabi_gcc_pkgdir)
 
     lib_switch = "-l"
     lib_dir_switch = "-L"
@@ -91,7 +107,7 @@ template("arm_none_eabi_toolchain") {
       rspfile = outname + ".rsp"
       rspfile_content = "{{inputs}}"
 
-      command = "${ccache} ${alink} rcsD {{arflags}} {{output}} @${rspfile}"
+      command = "${ccache} ${alink} rcs {{arflags}} {{output}} {{inputs}}"
       description = "AR $outname"
       outputs = [ outfile ]
 
@@ -104,17 +120,14 @@ template("arm_none_eabi_toolchain") {
       soname = "{{target_output_name}}{{output_extension}}"
       sofile = "{{output_dir}}/$soname"
 
-      rspfile = "${soname}.rsp"
-      rspfile_content = "-Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}}"
-
-      command = "${ccache} ${solink} -shared {{ldflags}} -o ${sofile} -Wl,-soname=$soname @${rspfile}"
+      command = "${ccache} ${solink} -shared {{ldflags}} -o ${sofile} {{inputs}} {{solibs}} {{libs}}"
       description = "SOLINK $soname"
       outputs = [ sofile ]
 
       link_output = sofile
       depend_output = sofile
 
-      # default_output_dir = "{{root_out_dir}}"
+      default_output_dir = "{{root_out_dir}}"
       default_output_extension = ".so"
       output_prefix = "lib"
     }
@@ -123,10 +136,7 @@ template("arm_none_eabi_toolchain") {
       outname = "{{target_output_name}}{{output_extension}}"
       outfile = "{{output_dir}}/$outname"
 
-      rspfile = "${outfile}.rsp"
-      rspfile_content = "{{inputs}}"
-
-      command = "${ccache} ${link} {{ldflags}} -o ${outfile} -Wl,--start-group @${rspfile} {{libs}} {{solibs}} -Wl,--end-group"
+      command = "${ccache} ${link} {{ldflags}} -o ${outfile} {{inputs}} {{libs}} {{solibs}}"
       description = "LINK $outfile"
       outputs = [ outfile ]
 
@@ -155,10 +165,8 @@ template("arm_none_eabi_toolchain") {
 }
 
 template("arm_none_eabi_action") {
-  assert(invoker.action != "")
-  assert(defined(arm_none_eabi_gcc_pkgdir))
-
   action(target_name) {
+    assert(invoker.script != "")
     forward_variables_from(invoker,
                            "*",
                            [
@@ -166,8 +174,17 @@ template("arm_none_eabi_action") {
                              "args",
                            ])
 
-    script = "${mds_script_dir}/run.py"
-    args = [ rebase_path(invoker.action, "", arm_none_eabi_gcc_pkgdir) ]
+    script = "${mds_build_dir}/scripts/run.py"
+
+    if (defined(invoker.prefix)) {
+      args = [ rebase_path(invoker.prefix + invoker.script,
+                           "",
+                           arm_none_eabi_gcc_pkgdir) ]
+    } else {
+      args = [ rebase_path("arm-none-eabi-" + invoker.script,
+                           "",
+                           arm_none_eabi_gcc_pkgdir) ]
+    }
 
     if (defined(invoker.args)) {
       args += invoker.args

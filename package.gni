@@ -1,11 +1,9 @@
 assert(defined(mds_build_dir))
 
-declare_args() {
-  mds_script_dir = rebase_path("${mds_build_dir}/scripts")
-}
-
 template("pkggroup") {
   group(target_name) {
+    not_needed(invoker, "*")
+
     pkg_targer_dir = exec_script("${mds_build_dir}/scripts/package.py",
                                  [ "${target_name}" ],
                                  "string")
@@ -23,6 +21,10 @@ template("pkggroup") {
       foreach(c, invoker.configs) {
         public_configs += [ "${pkg_targer_dir}" + c ]
       }
+    }
+
+    if (!defined(invoker.deps) && !defined(invoker.configs)) {
+      public_deps += [ "${pkg_targer_dir}/:${target_name}" ]
     }
   }
 }

@@ -10,7 +10,7 @@ declare_args() {
 declare_args() {
   if (cmsis_pkgdef == "") {
     print(">> package 'cmsis' @ ${cmsis_pkgver}")
-    cmsis_pkgdir = exec_script("${mds_script_dir}/package.py",
+    cmsis_pkgdir = exec_script("${mds_build_dir}/scripts/package.py",
                                [
                                  "cmsis",
                                  "-v=${cmsis_pkgver}",

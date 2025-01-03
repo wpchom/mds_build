@@ -1,17 +1,17 @@
-template("gcc_toolchain") {
-  not_needed(invoker, "*")
-  if (defined(invoker.ccache)) {
-    ccache = invoker.ccache
-  } else {
-    ccache = ""
-  }
-  if (defined(invoker.prefix)) {
-    prefix = invoker.prefix
-  } else {
-    prefix = ""
-  }
-
+template("gnu_toolchain") {
   toolchain(target_name) {
+    not_needed(invoker, "*")
+
+    ccache = exec_script("${mds_build_dir}/scripts/which.py",
+                         [ "ccache" ],
+                         "string")
+
+    if (defined(invoker.prefix)) {
+      prefix = invoker.prefix
+    } else {
+      prefix = ""
+    }
+
     if (defined(invoker.bindir)) {
       asm = rebase_path("${prefix}gcc", "", invoker.bindir)
       cc = rebase_path("${prefix}gcc", "", invoker.bindir)
@@ -82,7 +82,7 @@ template("gcc_toolchain") {
       link_output = sofile
       depend_output = sofile
 
-      # default_output_dir = "{{root_out_dir}}"
+      default_output_dir = "{{root_out_dir}}"
       default_output_extension = ".so"
       output_prefix = "lib"
     }
@@ -115,6 +115,40 @@ template("gcc_toolchain") {
         command = "cp -af {{source}} {{output}}"
       }
       description = "COPY {{source}} {{output}}"
+    }
+  }
+}
+
+template("gnu_action") {
+  action(target_name) {
+    assert(invoker.script != "")
+    forward_variables_from(invoker,
+                           "*",
+                           [
+                             "script",
+                             "args",
+                           ])
+
+    script = "${mds_build_dir}/scripts/run.py"
+    args = []
+
+    if (defined(invoker.bindir)) {
+      if (defined(invoker.prefix)) {
+        args +=
+            [ rebase_path(invoker.prefix + invoker.script, "", invoker.bindir) ]
+      } else {
+        args += [ rebase_path(invoker.script, "", invoker.bindir) ]
+      }
+    } else {
+      if (defined(invoker.prefix)) {
+        args += [ invoker.prefix + invoker.script ]
+      } else {
+        args += [ invoker.script ]
+      }
+    }
+
+    if (defined(invoker.args)) {
+      args += invoker.args
     }
   }
 }

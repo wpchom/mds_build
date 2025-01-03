@@ -1,61 +1,64 @@
 declare_args() {
-  riscv_none_elf_gcc_pkgdef = ""
-  riscv_none_elf_gcc_pkgver = "latest"
-  riscv_none_elf_gcc_pkgurl = "https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v{version}/xpack-riscv-none-elf-gcc-{version}"
-  riscv_none_elf_gcc_pkgapi = "https://api.github.com/repos/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases"
+  arm_none_eabi_gcc_pkgdef = ""
+  arm_none_eabi_gcc_pkgver = "latest"
+  arm_none_eabi_gcc_pkgurl = "https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases/download/v{version}/xpack-arm-none-eabi-gcc-{version}"
+  arm_none_eabi_gcc_pkgapi = "https://api.github.com/repos/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases"
 
   if (host_os == "windows") {
-    riscv_none_elf_gcc_pkgurl += "-win32-x64.zip"
+    arm_none_eabi_gcc_pkgurl += "-win32-x64.zip"
   } else if (host_os == "linux") {
     if (host_cpu == "arm64") {
-      riscv_none_elf_gcc_pkgurl += "-linux-arm64.tar.gz"
+      arm_none_eabi_gcc_pkgurl += "-linux-arm64.tar.gz"
     } else {
-      riscv_none_elf_gcc_pkgurl += "-linux-x64.tar.gz"
+      arm_none_eabi_gcc_pkgurl += "-linux-x64.tar.gz"
     }
   } else if (host_os == "mac") {
     if (host_cpu == "arm64") {
-      riscv_none_elf_gcc_pkgurl += "-darwin-arm64.tar.gz"
+      arm_none_eabi_gcc_pkgurl += "-darwin-arm64.tar.gz"
     } else {
-      riscv_none_elf_gcc_pkgurl += "-darwin-arm64.tar.gz"
+      arm_none_eabi_gcc_pkgurl += "-darwin-arm64.tar.gz"
     }
   }
 }
 
 declare_args() {
-  if (riscv_none_elf_gcc_pkgdef == "") {
-    print(">> package 'riscv-none-elf-gcc' @ ${riscv_none_elf_gcc_pkgver}")
-    riscv_none_elf_gcc_pkgdir =
-        exec_script("${mds_script_dir}/package.py",
+  if (arm_none_eabi_gcc_pkgdef == "") {
+    print(">> package 'arm_none_eabi_gcc' @ ${arm_none_eabi_gcc_pkgver}")
+    arm_none_eabi_gcc_pkgdir =
+        exec_script("${mds_build_dir}/scripts/package.py",
                     [
-                      "riscv_none_elf_gcc-${host_os}-${host_cpu}",
-                      "-u=${riscv_none_elf_gcc_pkgurl}",
-                      "-v=${riscv_none_elf_gcc_pkgver}",
-                      "-a=${riscv_none_elf_gcc_pkgapi}",
+                      "arm_none_eabi_gcc-${host_os}-${host_cpu}",
+                      "-v=${arm_none_eabi_gcc_pkgver}",
+                      "-u=${arm_none_eabi_gcc_pkgurl}",
+                      "-a=${arm_none_eabi_gcc_pkgapi}",
                       "-m=tag_name:v(.*)",
-                      "-p=xpack-riscv-none-elf-gcc-{version}/bin/",
+                      "-p=xpack-arm-none-eabi-gcc-{version}/bin/",
                     ],
                     "string")
   } else {
-    print("<< package 'riscv-none-elf-gcc' in ${riscv_none_elf_gcc_pkgdef}")
-    riscv_none_elf_gcc_pkgdir = riscv_none_elf_gcc_pkgdef
+    print("<< package 'arm_none_eabi_gcc' in ${arm_none_eabi_gcc_pkgdef}")
+    arm_none_eabi_gcc_pkgdir = arm_none_eabi_gcc_pkgdef
   }
 }
 
-template("riscv_none_elf_toolchain") {
-  not_needed(invoker, "*")
-  if (defined(invoker.ccache)) {
-    ccache = invoker.ccache
-  } else {
-    ccache = ""
-  }
-
+template("arm_none_eabi_toolchain") {
   toolchain(target_name) {
-    asm = rebase_path("riscv-none-elf-gcc", "", riscv_none_elf_gcc_pkgdir)
-    cc = rebase_path("riscv-none-elf-gcc", "", riscv_none_elf_gcc_pkgdir)
-    cxx = rebase_path("riscv-none-elf-g++", "", riscv_none_elf_gcc_pkgdir)
-    alink = rebase_path("riscv-none-elf-ar", "", riscv_none_elf_gcc_pkgdir)
-    solink = rebase_path("riscv-none-elf-g++", "", riscv_none_elf_gcc_pkgdir)
-    link = rebase_path("riscv-none-elf-g++", "", riscv_none_elf_gcc_pkgdir)
+    ccache = exec_script("${mds_build_dir}/scripts/which.py",
+                         [ "ccache" ],
+                         "string")
+
+    if (defined(invoker.prefix)) {
+      prefix = invoker.prefix
+    } else {
+      prefix = "arm-none-eabi-"
+    }
+
+    asm = rebase_path("${prefix}gcc", "", arm_none_eabi_gcc_pkgdir)
+    cc = rebase_path("${prefix}gcc", "", arm_none_eabi_gcc_pkgdir)
+    cxx = rebase_path("${prefix}g++", "", arm_none_eabi_gcc_pkgdir)
+    alink = rebase_path("${prefix}ar", "", arm_none_eabi_gcc_pkgdir)
+    solink = rebase_path("${prefix}g++", "", arm_none_eabi_gcc_pkgdir)
+    link = rebase_path("${prefix}g++", "", arm_none_eabi_gcc_pkgdir)
 
     lib_switch = "-l"
     lib_dir_switch = "-L"
@@ -91,7 +94,7 @@ template("riscv_none_elf_toolchain") {
       rspfile = outname + ".rsp"
       rspfile_content = "{{inputs}}"
 
-      command = "${ccache} ${alink} rcsD {{arflags}} {{output}} @${rspfile}"
+      command = "${ccache} ${alink} rcs {{arflags}} {{output}} {{inputs}}"
       description = "AR $outname"
       outputs = [ outfile ]
 
@@ -104,17 +107,14 @@ template("riscv_none_elf_toolchain") {
       soname = "{{target_output_name}}{{output_extension}}"
       sofile = "{{output_dir}}/$soname"
 
-      rspfile = "${soname}.rsp"
-      rspfile_content = "-Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}}"
-
-      command = "${ccache} ${solink} -shared {{ldflags}} -o ${sofile} -Wl,-soname=$soname @${rspfile}"
+      command = "${ccache} ${solink} -shared {{ldflags}} -o ${sofile} {{inputs}} {{solibs}} {{libs}}"
       description = "SOLINK $soname"
       outputs = [ sofile ]
 
       link_output = sofile
       depend_output = sofile
 
-      # default_output_dir = "{{root_out_dir}}"
+      default_output_dir = "{{root_out_dir}}"
       default_output_extension = ".so"
       output_prefix = "lib"
     }
@@ -123,10 +123,7 @@ template("riscv_none_elf_toolchain") {
       outname = "{{target_output_name}}{{output_extension}}"
       outfile = "{{output_dir}}/$outname"
 
-      rspfile = "${outfile}.rsp"
-      rspfile_content = "{{inputs}}"
-
-      command = "${ccache} ${link} {{ldflags}} -o ${outfile} -Wl,--start-group @${rspfile} {{libs}} {{solibs}} -Wl,--end-group"
+      command = "${ccache} ${link} {{ldflags}} -o ${outfile} {{inputs}} {{libs}} {{solibs}}"
       description = "LINK $outfile"
       outputs = [ outfile ]
 
@@ -154,11 +151,9 @@ template("riscv_none_elf_toolchain") {
   }
 }
 
-template("riscv_none_elf_action") {
-  assert(invoker.action != "")
-  assert(defined(riscv_none_elf_gcc_pkgdir))
-
+template("arm_none_eabi_action") {
   action(target_name) {
+    assert(invoker.script != "")
     forward_variables_from(invoker,
                            "*",
                            [
@@ -166,8 +161,17 @@ template("riscv_none_elf_action") {
                              "args",
                            ])
 
-    script = "${mds_script_dir}/run.py"
-    args = [ rebase_path(invoker.action, "", riscv_none_elf_gcc_pkgdir) ]
+    script = "${mds_build_dir}/scripts/run.py"
+
+    if (defined(invoker.prefix)) {
+      args = [ rebase_path(invoker.prefix + invoker.script,
+                           "",
+                           arm_none_eabi_gcc_pkgdir) ]
+    } else {
+      args = [ rebase_path("arm-none-eabi-" + invoker.script,
+                           "",
+                           arm_none_eabi_gcc_pkgdir) ]
+    }
 
     if (defined(invoker.args)) {
       args += invoker.args

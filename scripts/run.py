@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
+import os
 import sys
-import subprocess
 
-subprocess.run(' '.join([str(arg) for arg in sys.argv[1:]]), shell=True)
+os.system(' '.join([str(arg) for arg in sys.argv[1:]]))

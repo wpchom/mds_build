@@ -7,7 +7,7 @@ import argparse
 import platform
 import subprocess
 
-MDS_BUILD_DIR = os.path.dirname(os.path.realpath(__file__))
+MDS_BUILD_DIR = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 MDS_CACHE_DIR = os.path.join(os.path.expanduser("~"), ".mds_cache")
 
 
@@ -116,15 +116,14 @@ def check_ninja(proxy):
 
 def build_argparse():
     parser = argparse.ArgumentParser(
-        description="build.py [-o outdit] [-v] [-r] [-k] [-x proxy] dotfile")
+        description="build.py [-b buildir] [-f dotfile] [-o outdir] [-v] [-r] [-k] [-x proxy]")
 
-    parser.add_argument("dotfile", type=str,
-                        help="build dotfile name in buildir profile dir")
-
-    parser.add_argument("-b", "--buildir", type=str, default=None,
-                        help="gn root directory")
+    parser.add_argument("-b", "--buildir", type=str, default=os.getcwd(),
+                        help="build root dir for gn")
+    parser.add_argument("-f", "--dotfile", type=str, default=os.path.join(os.getcwd(), ".gn"),
+                        help="build dotfile for gn")
     parser.add_argument("-o", "--outdir", type=str, default=os.path.join(os.getcwd(), "outdir"),
-                        help="gn output directory")
+                        help="build out dir for gn")
 
     parser.add_argument("-k", "--update", action="store_true", default=False,
                         help="update mds_build from git")
@@ -142,28 +141,6 @@ def build_argparse():
 
     if args.proxy != None:
         os.environ['MDS_BUILD_PROXY'] = args.proxy
-
-    def project_name(gnfile):
-        for line in gnfile.readlines():
-            if line.strip().startswith('project_name'):
-                return line.split('=')[1].strip().strip('"\'')
-        return None
-
-    args.dotfile = os.path.abspath(args.dotfile)
-
-    if args.buildir == None:
-        args.buildir = os.path.abspath(
-            os.path.join(os.path.dirname(args.dotfile), ".."))
-
-    projname = project_name(open(args.dotfile))
-    if projname == None:
-        projname = project_name(
-            open(os.path.join(args.buildir, "BUILDCONFIG.gn")))
-    if projname == None:
-        projname = os.path.basename(args.buildir)
-
-    args.outdir = os.path.join(
-        args.outdir, projname, os.path.basename(args.dotfile).split('.')[0])
 
     return (args)
 
@@ -201,7 +178,7 @@ class Build:
             subprocess.run([self.ninja, "-t", "clean"], cwd=self.args.outdir)
 
     def build(self):
-        stime = time.time()
+        stime = time.perf_counter()
         print("\033[32m>>> Building action start '{}' with '{}'\033[0m".format(
             self.args.buildir, self.args.dotfile), flush=True)
 
@@ -228,13 +205,13 @@ class Build:
         self.debug(" ".join(cmd_ninja_build))
         res = subprocess.run(cmd_ninja_build, cwd=self.args.outdir)
 
-        etime = time.time()
+        etime = time.perf_counter()
 
         if (res.returncode == 0):
-            print("\033[32m>>> Building action finished cost time: %.3fms\033[0m\n" %
+            print("\033[32m>>> Building action finished cost time: %.3fs\033[0m\n" %
                   float(etime - stime), flush=True)
         else:
-            print("\033[31m>>> Building action error cost time: %.3fms\033[0m\n" %
+            print("\033[31m>>> Building action error cost time: %.3fs\033[0m\n" %
                   float(etime - stime), flush=True)
 
         return (res.returncode)

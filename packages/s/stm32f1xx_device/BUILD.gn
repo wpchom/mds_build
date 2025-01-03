@@ -15,7 +15,7 @@ declare_args() {
 declare_args() {
   if (stm32f1xx_device_pkgdef == "") {
     print(">> package 'stm32f1xx_device' @ ${stm32f1xx_device_pkgver}")
-    stm32f1xx_device_pkgdir = exec_script("${mds_script_dir}/package.py",
+    stm32f1xx_device_pkgdir = exec_script("${mds_build_dir}/scripts/package.py",
                                           [
                                             "stm32f1xx_device",
                                             "-v=${stm32f1xx_device_pkgver}",

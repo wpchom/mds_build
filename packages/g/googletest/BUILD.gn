@@ -15,7 +15,7 @@ declare_args() {
 declare_args() {
   if (googletest_pkgdef == "") {
     print(">> package 'googletest' @ ${googletest_pkgver}")
-    googletest_pkgdir = exec_script("${mds_script_dir}/package.py",
+    googletest_pkgdir = exec_script("${mds_build_dir}/scripts/package.py",
                                     [
                                       "googletest",
                                       "-v=${googletest_pkgver}",
