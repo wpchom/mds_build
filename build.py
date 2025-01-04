@@ -134,10 +134,12 @@ def build_argparse():
     parser.add_argument("-x", "--proxy", type=str, default=os.getenv("MDS_BUILD_PROXY"),
                         help="proxy server, default getenv MDS_BUILD_PROXY")
 
-    parser.add_argument("--args", type=str, default=None,
+    parser.add_argument("--args", type=str, action="append", default=[],
                         help="gn gen with args")
 
     args = parser.parse_args()
+
+    print(args.args)
 
     if args.proxy != None:
         os.environ['MDS_BUILD_PROXY'] = args.proxy
@@ -187,8 +189,7 @@ class Build:
         cmd_gn_build += ['--dotfile=%s' % self.args.dotfile]
 
         cmd_gn_build += ['--args=%s' %
-                         ' '.join(['mds_build_dir=\"%s\"' % MDS_BUILD_DIR] +
-                                  ([] if self.args.args == None else self.args.args.split(" ")))]
+                         ' '.join(['mds_build_dir=\"%s\"' % MDS_BUILD_DIR] + self.args.args)]
 
         self.debug(' '.join([self.gn] + cmd_gn_build))
 
