@@ -8,8 +8,9 @@ import argparse
 import subprocess
 
 
-MDS_BUILD_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-MDS_CACHE_DIR = os.path.join(os.path.expanduser("~"), ".mds_cache")
+MDS_BUILD_DIR = os.path.join(
+    os.path.realpath(os.path.dirname(os.path.realpath(__file__))), "../")
+MDS_CACHE_DIR = os.path.join(MDS_BUILD_DIR, "cache")
 
 
 def pkg_repos_dir(args):
@@ -180,11 +181,14 @@ def version_from_api(args):
     else:
         opener = urllib.request.build_opener()
 
-    with opener.open(request_api) as response:
-        if response.status == 200:  # HTTP 200 OK
-            kv_json = json.loads(response.read().decode())
-        else:
-            error("failed to fetch latest release")
+    try:
+        with opener.open(request_api) as response:
+            if response.status == 200:  # HTTP 200 OK
+                kv_json = json.loads(response.read().decode())
+            else:
+                error("failed to fetch latest release")
+    except urllib.error.URLError as e:
+        error(f"Failed to send request: {e}")
 
     if args.match.startswith("-r:"):
         latest_kv = kv_json[-1]
@@ -255,7 +259,7 @@ def main():
         if not os.path.exists(resource_path):
             error("package '{}' not found".format(args.name))
         else:
-            sys.stdout.write(resource_path)
+            sys.stdout.write(os.path.abspath(resource_path))
         return
 
     if args.ver == None:
@@ -273,8 +277,8 @@ def main():
 
     resource_path = pkg_download(args, download_path, download_fext)
 
-    sys.stdout.write(os.path.join(
-        resource_path, args.path.replace("{version}", args.ver)))
+    sys.stdout.write(os.path.abspath(os.path.join(
+        resource_path, args.path.replace("{version}", args.ver))))
 
 
 if __name__ == '__main__':

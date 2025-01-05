@@ -7,8 +7,9 @@ import argparse
 import platform
 import subprocess
 
-MDS_BUILD_DIR = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-MDS_CACHE_DIR = os.path.join(os.path.expanduser("~"), ".mds_cache")
+MDS_BUILD_DIR = os.path.join(
+    os.path.realpath(os.path.dirname(os.path.realpath(__file__))), "../")
+MDS_CACHE_DIR = os.path.join(MDS_BUILD_DIR, "cache")
 
 
 def error(message):
@@ -138,8 +139,6 @@ def build_argparse():
                         help="gn gen with args")
 
     args = parser.parse_args()
-
-    print(args.args)
 
     if args.proxy != None:
         os.environ['MDS_BUILD_PROXY'] = args.proxy

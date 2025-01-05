@@ -2,7 +2,7 @@
 
 declare_args() {
   mds_kernel_pkgdef = ""
-  mds_kernel_pkgver = "develop"
+  mds_kernel_pkgver = "master"
   mds_kernel_pkgurl = "https://github.com/wpchom/mds_kernel.git"
 }
 

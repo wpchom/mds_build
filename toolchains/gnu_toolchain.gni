@@ -2,9 +2,13 @@ template("gnu_toolchain") {
   toolchain(target_name) {
     not_needed(invoker, "*")
 
-    ccache = exec_script("${mds_build_dir}/scripts/which.py",
-                         [ "ccache" ],
-                         "string")
+    if (defined(invoker.ccache)) {
+      ccache = invoker.ccache
+    } else {
+      ccache = exec_script("${mds_build_dir}/scripts/which.py",
+                           [ "ccache" ],
+                           "string")
+    }
 
     if (defined(invoker.prefix)) {
       prefix = invoker.prefix

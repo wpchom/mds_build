@@ -2,7 +2,7 @@
 
 declare_args() {
   mds_device_pkgdef = ""
-  mds_device_pkgver = "develop"
+  mds_device_pkgver = "master"
   mds_device_pkgurl = "https://github.com/wpchom/mds_device.git"
 }
 

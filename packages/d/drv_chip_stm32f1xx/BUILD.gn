@@ -2,7 +2,7 @@
 
 declare_args() {
   drv_chip_stm32f1xx_pkgdef = ""
-  drv_chip_stm32f1xx_pkgver = "develop"
+  drv_chip_stm32f1xx_pkgver = "master"
   drv_chip_stm32f1xx_pkgurl = "https://github.com/wpchom/drv_chip_stm32f1xx.git"
 }
 

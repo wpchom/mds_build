@@ -11,12 +11,12 @@ mds_build is a python script to build with 'gn' and 'ninja' for sources.
 # directories
 ```
 .
-├── README.md       # this file
+├── cache           # cache for packages
+├── packages        # build repository for gn package description
+├── scripts         # scripts for build
+├── toolchains      # support build toolchains
 ├── package.gni     # imported by BUILDCONFIG.gn
-├── pkgs            # store build package/resource/binary
-├── repos           # build repository for gn package description
-├── scripts         # some build scripts
-└── toolchains      # support build toolchains
+└── README.md       # this file
 ```
 
 ## usage
