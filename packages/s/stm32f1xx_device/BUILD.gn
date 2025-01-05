@@ -35,6 +35,10 @@ pkggroup("cmsis") {
   configs = [ ":cmsis_core" ]
 }
 
+group("stm32f1xx_device") {
+  public_configs = [ ":stm32f1xx_device_config" ]
+}
+
 config("stm32f1xx_device_config") {
   include_dirs = [ "${stm32f1xx_device_pkgdir}/Include" ]
 

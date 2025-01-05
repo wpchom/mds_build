@@ -31,6 +31,9 @@ declare_args() {
   }
 }
 
+group("googletest") {
+}
+
 config("gtest_config") {
   include_dirs = [ "${googletest_pkgdir}/googletest/include" ]
 

@@ -36,7 +36,6 @@ pkggroup("cmsis") {
 }
 
 pkggroup("stm32f1xx_device") {
-  configs = [ ":stm32f1xx_device_config" ]
 }
 
 config("stm32f1xx_hal_driver_config") {
@@ -57,7 +56,7 @@ config("stm32f1xx_hal_driver_ll_config") {
   }
 }
 
-source_set("stm32f1xx_hal_driver") {
+static_library("stm32f1xx_hal_driver") {
   sources = [
     "${stm32f1xx_hal_driver_pkgdir}/Src/stm32f1xx_hal.c",
     "${stm32f1xx_hal_driver_pkgdir}/Src/stm32f1xx_hal_adc.c",
@@ -110,7 +109,7 @@ source_set("stm32f1xx_hal_driver") {
   ]
 }
 
-source_set("stm32f1xx_hal_driver_ll") {
+static_library("stm32f1xx_hal_driver_ll") {
   sources = [
     "${stm32f1xx_hal_driver_pkgdir}/Src/stm32f1xx_ll_adc.c",
     "${stm32f1xx_hal_driver_pkgdir}/Src/stm32f1xx_ll_crc.c",

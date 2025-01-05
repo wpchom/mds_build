@@ -26,6 +26,10 @@ declare_args() {
   }
 }
 
+group("cmsis") {
+  public_configs = [ ":cmsis_core" ]
+}
+
 config("cmsis_core") {
   include_dirs = [ "${cmsis_pkgdir}/Core/Include" ]
 }

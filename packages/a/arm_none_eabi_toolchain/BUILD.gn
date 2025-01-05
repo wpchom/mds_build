@@ -106,15 +106,9 @@ template("arm_none_eabi_toolchain") {
     }
 
     tool("alink") {
-      outname = "{{target_output_name}}{{output_extension}}"
-      outfile = "{{output_dir}}/$outname"
-
-      rspfile = outname + ".rsp"
-      rspfile_content = "{{inputs}}"
-
-      command = "${ccache} ${alink} rcs {{arflags}} {{output}} {{inputs}}"
-      description = "AR $outname"
-      outputs = [ outfile ]
+      command = "${ccache} ${alink} {{arflags}} -rcsD {{output}} {{inputs}}"
+      description = "AR {{output}}"
+      outputs = [ "{{output_dir}}/{{target_output_name}}{{output_extension}}" ]
 
       default_output_dir = "{{target_out_dir}}"
       default_output_extension = ".a"
@@ -123,10 +117,10 @@ template("arm_none_eabi_toolchain") {
 
     tool("solink") {
       soname = "{{target_output_name}}{{output_extension}}"
-      sofile = "{{output_dir}}/$soname"
+      sofile = "{{output_dir}}/${soname}"
 
-      command = "${ccache} ${solink} -shared {{ldflags}} -o ${sofile} {{inputs}} {{solibs}} {{libs}}"
-      description = "SOLINK $soname"
+      command = "${ccache} ${solink} -shared {{ldflags}} -o \"${sofile}\" -Wl,--whole-archive {{inputs}} {{solibs}} {{rlibs}} -Wl,--no-whole-archive {{libs}}"
+      description = "SOLINK ${sofile}"
       outputs = [ sofile ]
 
       link_output = sofile
@@ -139,10 +133,10 @@ template("arm_none_eabi_toolchain") {
 
     tool("link") {
       outname = "{{target_output_name}}{{output_extension}}"
-      outfile = "{{output_dir}}/$outname"
+      outfile = "{{output_dir}}/${outname}"
 
-      command = "${ccache} ${link} {{ldflags}} -o ${outfile} {{inputs}} {{libs}} {{solibs}}"
-      description = "LINK $outfile"
+      command = "${ccache} ${link} {{ldflags}} -o \"${outfile}\" -Wl,--whole-archive {{inputs}} {{solibs}} {{rlibs}} -Wl,--no-whole-archive {{libs}}"
+      description = "LINK ${outfile}"
       outputs = [ outfile ]
 
       default_output_dir = "{{root_out_dir}}"

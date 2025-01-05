@@ -36,7 +36,6 @@ pkggroup("cmsis") {
 }
 
 pkggroup("stm32h7xx_device") {
-  configs = [ ":stm32h7xx_device_config" ]
 }
 
 config("stm32h7xx_hal_driver_config") {
@@ -57,7 +56,7 @@ config("stm32h7xx_hal_driver_ll_config") {
   }
 }
 
-source_set("stm32h7xx_hal_driver") {
+static_library("stm32h7xx_hal_driver") {
   sources = [
     "${stm32h7xx_hal_driver_pkgdir}/Src/stm32h7xx_hal.c",
     "${stm32h7xx_hal_driver_pkgdir}/Src/stm32h7xx_hal_adc.c",
@@ -158,7 +157,7 @@ source_set("stm32h7xx_hal_driver") {
   ]
 }
 
-source_set("stm32h7xx_hal_driver_ll") {
+static_library("stm32h7xx_hal_driver_ll") {
   sources = [
     "${stm32h7xx_hal_driver_pkgdir}/Src/stm32h7xx_ll_adc.c",
     "${stm32h7xx_hal_driver_pkgdir}/Src/stm32h7xx_ll_bdma.c",

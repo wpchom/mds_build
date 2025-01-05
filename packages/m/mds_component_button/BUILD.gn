@@ -1,0 +1,29 @@
+# "https://github.com/wpchom/mds_component_button.git"
+
+declare_args() {
+  mds_component_button_pkgdef = ""
+  mds_component_button_pkgver = "master"
+  mds_component_button_pkgurl =
+      "https://github.com/wpchom/mds_component_button.git"
+}
+
+declare_args() {
+  if (mds_component_button_pkgdef == "") {
+    print(">> package 'mds_component_button' @ ${mds_component_button_pkgver}")
+    mds_component_button_pkgdir =
+        exec_script("${mds_build_dir}/scripts/package.py",
+                    [
+                      "mds_component_button",
+                      "-v=${mds_component_button_pkgver}",
+                      "-u=${mds_component_button_pkgurl}",
+                    ],
+                    "string")
+  } else {
+    print("<< package 'mds_component_button' in ${mds_component_button_pkgdef}")
+    mds_component_button_pkgdir = mds_component_button_pkgdef
+  }
+}
+
+group("mds_component_button") {
+  public_deps = [ "${mds_component_button_pkgdir}/:mds_component_button" ]
+}
