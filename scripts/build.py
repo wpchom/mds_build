@@ -117,14 +117,16 @@ def check_ninja(proxy):
 
 def build_argparse():
     parser = argparse.ArgumentParser(
-        description="build.py [-b buildir] [-f dotfile] [-o outdir] [-v] [-r] [-k] [-x proxy]")
+        description="build.py [target] [-b buildir] [-f dotfile] [-o outdir] [-v] [-r] [-k] [-x proxy]")
 
-    parser.add_argument("-b", "--buildir", type=str, default=os.getcwd(),
-                        help="build root dir for gn")
-    parser.add_argument("-f", "--dotfile", type=str, default=os.path.join(os.getcwd(), ".gn"),
+    parser.add_argument("target", type=str, nargs="*",
+                        help="build target for gn")
+    parser.add_argument("-b", "--buildir", type=str, default=None,
+                        help="build root directory for gn")
+    parser.add_argument("-f", "--dotfile", type=str, default=None,
                         help="build dotfile for gn")
-    parser.add_argument("-o", "--outdir", type=str, default=os.path.join(os.getcwd(), "outdir"),
-                        help="build out dir for gn")
+    parser.add_argument("-o", "--outdir", type=str, default=None,
+                        help="build out directory for gn")
 
     parser.add_argument("-k", "--update", action="store_true", default=False,
                         help="update mds_build from git")
@@ -142,6 +144,21 @@ def build_argparse():
 
     if args.proxy != None:
         os.environ['MDS_BUILD_PROXY'] = args.proxy
+
+    if args.buildir != None:
+        args.buildir = os.path.abspath(args.buildir)
+    else:
+        args.buildir = os.path.abspath(os.getcwd())
+
+    if args.dotfile != None:
+        args.dotfile = os.path.abspath(args.dotfile)
+    else:
+        args.dotfile = os.path.join(os.getcwd(), ".gn")
+
+    if args.outdir != None:
+        args.outdir = os.path.abspath(args.outdir)
+    else:
+        args.outdir = os.path.join(os.getcwd(), "outdir")
 
     return (args)
 
@@ -183,7 +200,7 @@ class Build:
         print("\033[32m>>> Building action start '{}' with '{}'\033[0m".format(
             self.args.buildir, self.args.dotfile), flush=True)
 
-        cmd_gn_build = ['gen', self.args.outdir]
+        cmd_gn_build = ['gen', self.args.outdir, '--export-compile-commands']
         cmd_gn_build += ['--root=%s' % self.args.buildir]
         cmd_gn_build += ['--dotfile=%s' % self.args.dotfile]
 
@@ -213,8 +230,7 @@ class Build:
         else:
             print("\033[31m>>> Building action error cost time: %.3fs\033[0m\n" %
                   float(etime - stime), flush=True)
-
-        return (res.returncode)
+            error(res)
 
 
 def main():

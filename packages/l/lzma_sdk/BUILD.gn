@@ -1,0 +1,48 @@
+# https://www.7-zip.org/sdk.html
+
+declare_args() {
+  lzma_sdk_size_opt = true
+}
+
+declare_args() {
+  lzma_sdk_pkgdef = ""
+  lzma_sdk_pkgver = "2409"
+  lzma_sdk_pkgurl = "https://www.7-zip.org/a/lzma{version}.7z"
+}
+
+declare_args() {
+  if (lzma_sdk_pkgdef == "") {
+    print(">> package 'lzma_sdk' @ ${lzma_sdk_pkgver}")
+    lzma_sdk_pkgdir = exec_script("${mds_build_dir}/scripts/package.py",
+                                  [
+                                    "lzma_sdk",
+                                    "-v=${lzma_sdk_pkgver}",
+                                    "-u=${lzma_sdk_pkgurl}",
+                                    "-m=name:v(.*)",
+                                    "-p=.",
+                                  ],
+                                  "string")
+  } else {
+    print("<< package 'lzma_sdk' in ${lzma_sdk_pkgdef}")
+    lzma_sdk_pkgdir = lzma_sdk_pkgdef
+  }
+}
+
+config("lzma_sdk_config") {
+  include_dirs = [ "${lzma_sdk_pkgdir}/C" ]
+}
+
+static_library("lzma_sdk") {
+  sources = [
+    "${lzma_sdk_pkgdir}/C/LzmaDec.c",
+    "${lzma_sdk_pkgdir}/C/LzmaEnc.c",
+  ]
+
+  defines = []
+
+  if (defined(lzma_sdk_size_opt) && lzma_sdk_size_opt) {
+    defines += [ "Z7_LZMA_SIZE_OPT" ]
+  }
+
+  public_configs = [ ":lzma_sdk_config" ]
+}
