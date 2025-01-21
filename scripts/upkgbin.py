@@ -7,24 +7,25 @@ import struct
 
 
 '''
-#define MDS_BOOT_UPGRADE_MAGIC 0x9ADE
+#ifndef MDS_BOOT_UPGRADE_MAGIC
+#define MDS_BOOT_UPGRADE_MAGIC 0xBDAC9ADE
+#endif
 
 typedef struct MDS_BOOT_BinInfo {
-    uint16_t check;
-    uint16_t flag;
-    uint32_t dstAddr;
-    uint32_t srcSize;
+    uint8_t check[sizeof(uint16_t)];
+    uint8_t flag[sizeof(uint16_t)];
+    uint8_t dstAddr[sizeof(uint32_t)];
+    uint8_t srcSize[sizeof(uint32_t)];
     uint8_t hash[MDS_BOOT_CHKHASH_SIZE];
 
     // context of `uint8_t data[srcSize]` for upgrade bin
 } MDS_BOOT_BinInfo_t;
 
 typedef struct MDS_BOOT_UpgradeInfo {
-    uint16_t check;  // check upgradeInfo header
-    uint16_t magic;
-    uint16_t type;   // type comfired for firmware
-    uint16_t count;  // count of binInfos
-    uint32_t size;   // totalSize
+    uint8_t check[sizeof(uint16_t)];  // check upgradeInfo header
+    uint8_t magic[sizeof(uint32_t)];  // magic for firmware check
+    uint8_t count[sizeof(uint16_t)];  // count of binInfos
+    uint8_t size[sizeof(uint32_t)];   // totalSize
     uint8_t hash[MDS_BOOT_CHKHASH_SIZE];
 
     // context of `MDS_BOOT_BinInfo_t binInfo[count]` for upgrade bin combain
@@ -68,10 +69,10 @@ class BinFile:
         self.header = struct.pack('>H', int(self.check)) + self.header
 
 
-def hex_uint16(x):
+def hex_uint32(x):
     try:
         value = int(x, 16)
-        if value < 0 or value > 0xFFFF:
+        if value < 0 or value > 0xFFFFFFFF:
             raise ValueError()
         else:
             return int(x, 16)
@@ -84,10 +85,8 @@ def main():
         description='multi bin package to upgrade')
 
     parser.add_argument("output", type=str, help="output file")
-    parser.add_argument("-m", "--magic", type=hex_uint16, default=0x9ADE,
-                        help="magic number")
-    parser.add_argument("-t", "--type", type=hex_uint16, default=0x0000,
-                        help="type comfired for firmware")
+    parser.add_argument("-m", "--magic", type=hex_uint32, default=0xBDAC9ADE,
+                        help="magic for firmware check (default: 0xBDAC9ADE)")
     parser.add_argument("-b", "--bin", type=str, action='append', default=[],
                         help="bin file list")
 
@@ -112,7 +111,7 @@ def main():
         upgrade_hash.update(open(path, 'rb').read())
         bin_list.append(b)
 
-    upgrade_header = struct.pack('>HHH', args.magic, args.type, bin_count) + \
+    upgrade_header = struct.pack('>IH', args.magic, bin_count) + \
         struct.pack('>I', total_size) + upgrade_hash.digest()
     upgrade_check = crc16(upgrade_header)
     upgrade_header = struct.pack('>H', int(upgrade_check)) + upgrade_header
