@@ -69,33 +69,7 @@ class BinFile:
         self.header = struct.pack('>H', int(self.check)) + self.header
 
 
-def hex_uint32(x):
-    try:
-        value = int(x, 16)
-        if value < 0 or value > 0xFFFFFFFF:
-            raise ValueError()
-        else:
-            return int(x, 16)
-    except ValueError:
-        raise argparse.ArgumentTypeError(f"'{x}' not a uint16 hex integer")
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description='multi bin package to upgrade')
-
-    parser.add_argument("output", type=str, help="output file")
-    parser.add_argument("-m", "--magic", type=hex_uint32, default=0xBDAC9ADE,
-                        help="magic for firmware check (default: 0xBDAC9ADE)")
-    parser.add_argument("-b", "--bin", type=str, action='append', default=[],
-                        help="bin file list")
-
-    args = parser.parse_args()
-
-    if len(args.bin) == 0:
-        print("please input bin file")
-        exit(-1)
-
+def upkgbin(args):
     bin_count = 0
     total_size = 0
     upgrade_hash = hashlib.sha256()
@@ -116,8 +90,9 @@ def main():
     upgrade_check = crc16(upgrade_header)
     upgrade_header = struct.pack('>H', int(upgrade_check)) + upgrade_header
 
-    print(f'[upkgbin] count:{bin_count} into:{args.output}')
-    with open(args.output, 'wb') as f:
+    upkg_output = args.output
+    print(f'[upkgbin] count:{bin_count} into:{upkg_output}')
+    with open(upkg_output, 'wb') as f:
         f.write(upgrade_header)
         for b in bin_list:
             f.write(b.header)
@@ -125,6 +100,57 @@ def main():
             print(f'''- bin:{b.path}, addr:{hex(b.addr)}, flag:{
                   hex(b.flag)}, size:{b.size}''')
         f.close()
+
+    upkg_filesz = os.path.getsize(upkg_output)
+
+    print(f'[upkgbin] output file size {upkg_filesz} limit {args.limit}')
+
+    if (args.limit > 0) and (upkg_filesz > args.limit):
+        exit(-1)
+
+
+def type_val(x):
+    try:
+        value = int(x, 16)
+        if value < 0 or value > 0xFFFFFFFF:
+            raise ValueError()
+        else:
+            return int(x, 16)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"'{x}' not a uint16 hex integer")
+
+
+def type_hex(x):
+    try:
+        if x.endswith('k') or x.endswith('K'):
+            return int(x[:-1], 10) * 1024
+        elif x.endswith('m') or x.endswith('M'):
+            return int(x[:-1], 10) * 1024 * 1024
+        else:
+            return int(x, 10)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"'{x}' not a invalid hex integer")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='multi bin package to upgrade')
+
+    parser.add_argument("output", type=str, help="output file")
+    parser.add_argument("-m", "--magic", type=type_val, default=0xBDAC9ADE,
+                        help="magic for firmware check (default: 0xBDAC9ADE)")
+    parser.add_argument("-l", "--limit", type=type_hex, default=0,
+                        help="output file size limit (default: 0 => no limit)")
+    parser.add_argument("-b", "--bin", type=str, action='append', default=[],
+                        help="bin file list")
+
+    args = parser.parse_args()
+
+    if len(args.bin) == 0:
+        print("please input bin file")
+        exit(-1)
+
+    upkgbin(args)
 
 
 if __name__ == '__main__':

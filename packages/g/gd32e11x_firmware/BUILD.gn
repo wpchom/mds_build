@@ -1,0 +1,61 @@
+# https://www.gd32mcu.com/cn/download/0?kw=GD32E1
+
+declare_args() {
+  gd32e11x_hxtal_value = 8000
+  gd32e11x_system_clock_def = "__SYSTEM_CLOCK_IRC8M=8000"
+}
+
+declare_args() {
+  gd32e11x_firmware_pkgdef = ""
+  gd32e11x_firmware_pkgver = "1.2.0"
+  gd32e11x_firmware_pkgurl = "https://www.gd32mcu.com/data/documents/toolSoftware/GD32E11x_Firmware_Library_V{version}.7z"
+}
+
+declare_args() {
+  if (gd32e11x_firmware_pkgdef == "") {
+    print(">> package 'gd32e11x_firmware' @ ${gd32e11x_firmware_pkgver}")
+    gd32e11x_firmware_pkgdir =
+        exec_script("${mds_build_dir}/scripts/package.py",
+                    [
+                      "gd32e11x_firmware",
+                      "-u=${gd32e11x_firmware_pkgurl}",
+                      "-v=${gd32e11x_firmware_pkgver}",
+                      "-p=GD32E11x_Firmware_Library_V{version}",
+                    ],
+                    "string")
+  } else {
+    print("<< package 'gd32e11x_firmware' in ${gd32e11x_firmware_pkgdef}")
+    gd32e11x_firmware_pkgdir = gd32e11x_firmware_pkgdef
+  }
+}
+
+pkggroup("cmsis") {
+  configs = [ ":cmsis_core" ]
+}
+
+config("gd32e11x_firmware_config") {
+  include_dirs = [
+    "${gd32e11x_firmware_pkgdir}/Firmware/CMSIS/GD/GD32E11x/Include/",
+    "${gd32e11x_firmware_pkgdir}/Firmware/GD32E11x_standard_peripheral/Include/",
+    "inc/",
+  ]
+
+  defines = []
+
+  if (defined(gd32e11x_hxtal_value) && gd32e11x_hxtal_value != "") {
+    defines += [ "HXTAL_VALUE=${gd32e11x_hxtal_value}" ]
+  }
+}
+
+static_library("gd32e11x_firmware") {
+  sources = [
+    "${gd32e11x_firmware_pkgdir}/Firmware/CMSIS/GD/GD32E11x/Source/system_gd32e11x.c",
+    "src/gd32e11x_redirect.c",
+  ]
+
+  defines = [ gd32e11x_system_clock_def ]
+
+  public_configs = [ ":gd32e11x_firmware_config" ]
+
+  public_deps = [ ":cmsis" ]
+}

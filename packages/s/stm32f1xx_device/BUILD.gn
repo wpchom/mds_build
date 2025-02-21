@@ -47,7 +47,7 @@ config("stm32f1xx_device_config") {
   }
 }
 
-source_set("stm32f1xx_system") {
+static_library("stm32f1xx_system") {
   sources = [ "${stm32f1xx_device_pkgdir}/Source/Templates/system_stm32f1xx.c" ]
 
   public_configs = [ ":stm32f1xx_device_config" ]

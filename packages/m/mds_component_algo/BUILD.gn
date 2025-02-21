@@ -23,16 +23,6 @@ declare_args() {
   }
 }
 
-config("mds_component_algo_config") {
-  include_dirs = [ "${mds_component_algo_pkgdir}/inc" ]
-}
-
-source_set("crc") {
-  sources = [ "${mds_component_algo_pkgdir}/src/algo_crc.c" ]
-  public_configs = [ ":mds_component_algo_config" ]
-}
-
-source_set("sha2") {
-  sources = [ "${mds_component_algo_pkgdir}/src/algo_sha2.c" ]
-  public_configs = [ ":mds_component_algo_config" ]
+group("mds_component_algo") {
+  public_deps = [ "${mds_component_algo_pkgdir}/:mds_component_algo" ]
 }

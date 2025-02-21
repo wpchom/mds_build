@@ -1,0 +1,28 @@
+# "https://github.com/wpchom/drv_chip_gd32e11x.git"
+
+declare_args() {
+  drv_chip_gd32e11x_pkgdef = ""
+  drv_chip_gd32e11x_pkgver = "master"
+  drv_chip_gd32e11x_pkgurl = "https://github.com/wpchom/drv_chip_gd32e11x.git"
+}
+
+declare_args() {
+  if (drv_chip_gd32e11x_pkgdef == "") {
+    print(">> package 'drv_chip_gd32e11x' @ ${drv_chip_gd32e11x_pkgver}")
+    drv_chip_gd32e11x_pkgdir =
+        exec_script("${mds_build_dir}/scripts/package.py",
+                    [
+                      "drv_chip_gd32e11x",
+                      "-v=${drv_chip_gd32e11x_pkgver}",
+                      "-u=${drv_chip_gd32e11x_pkgurl}",
+                    ],
+                    "string")
+  } else {
+    print("<< package 'drv_chip_gd32e11x' in ${drv_chip_gd32e11x_pkgdef}")
+    drv_chip_gd32e11x_pkgdir = drv_chip_gd32e11x_pkgdef
+  }
+}
+
+group("drv_chip_gd32e11x") {
+  public_deps = [ "${drv_chip_gd32e11x_pkgdir}/:drv_chip_gd32e11x" ]
+}

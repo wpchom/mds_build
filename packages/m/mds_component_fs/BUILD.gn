@@ -1,0 +1,27 @@
+# "https://github.com/wpchom/mds_component_fs.git"
+
+declare_args() {
+  mds_component_fs_pkgdef = ""
+  mds_component_fs_pkgver = "master"
+  mds_component_fs_pkgurl = "https://github.com/wpchom/mds_component_fs.git"
+}
+
+declare_args() {
+  if (mds_component_fs_pkgdef == "") {
+    print(">> package 'mds_component_fs' @ ${mds_component_fs_pkgver}")
+    mds_component_fs_pkgdir = exec_script("${mds_build_dir}/scripts/package.py",
+                                          [
+                                            "mds_component_fs",
+                                            "-v=${mds_component_fs_pkgver}",
+                                            "-u=${mds_component_fs_pkgurl}",
+                                          ],
+                                          "string")
+  } else {
+    print("<< package 'mds_component_fs' in ${mds_component_fs_pkgdef}")
+    mds_component_fs_pkgdir = mds_component_fs_pkgdef
+  }
+}
+
+group("mds_component_fs") {
+  public_deps = [ "${mds_component_fs_pkgdir}/:mds_component_fs" ]
+}
