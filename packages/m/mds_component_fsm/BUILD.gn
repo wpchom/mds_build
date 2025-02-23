@@ -1,28 +1,5 @@
-# "https://github.com/wpchom/mds_component_fsm.git"
-
-declare_args() {
-  mds_component_fsm_pkgdef = ""
-  mds_component_fsm_pkgver = "master"
-  mds_component_fsm_pkgurl = "https://github.com/wpchom/mds_component_fsm.git"
-}
-
-declare_args() {
-  if (mds_component_fsm_pkgdef == "") {
-    print(">> package 'mds_component_fsm' @ ${mds_component_fsm_pkgver}")
-    mds_component_fsm_pkgdir =
-        exec_script("${mds_build_dir}/scripts/package.py",
-                    [
-                      "mds_component_fsm",
-                      "-v=${mds_component_fsm_pkgver}",
-                      "-u=${mds_component_fsm_pkgurl}",
-                    ],
-                    "string")
-  } else {
-    print("<< package 'mds_component_fsm' in ${mds_component_fsm_pkgdef}")
-    mds_component_fsm_pkgdir = mds_component_fsm_pkgdef
-  }
-}
+import("../mds_component.gni")
 
 group("mds_component_fsm") {
-  public_deps = [ "${mds_component_fsm_pkgdir}/:mds_component_fsm" ]
+  public_deps = [ "${mds_component_pkgdir}/fsm/:mds_component_fsm" ]
 }

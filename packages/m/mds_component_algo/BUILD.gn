@@ -1,28 +1,5 @@
-# "https://github.com/wpchom/mds_component_algo.git"
-
-declare_args() {
-  mds_component_algo_pkgdef = ""
-  mds_component_algo_pkgver = "master"
-  mds_component_algo_pkgurl = "https://github.com/wpchom/mds_component_algo.git"
-}
-
-declare_args() {
-  if (mds_component_algo_pkgdef == "") {
-    print(">> package 'mds_component_algo' @ ${mds_component_algo_pkgver}")
-    mds_component_algo_pkgdir =
-        exec_script("${mds_build_dir}/scripts/package.py",
-                    [
-                      "mds_component_algo",
-                      "-v=${mds_component_algo_pkgver}",
-                      "-u=${mds_component_algo_pkgurl}",
-                    ],
-                    "string")
-  } else {
-    print("<< package 'mds_component_algo' in ${mds_component_algo_pkgdef}")
-    mds_component_algo_pkgdir = mds_component_algo_pkgdef
-  }
-}
+import("../mds_component.gni")
 
 group("mds_component_algo") {
-  public_deps = [ "${mds_component_algo_pkgdir}/:mds_component_algo" ]
+  public_deps = [ "${mds_component_pkgdir}/algo/:mds_component_algo" ]
 }

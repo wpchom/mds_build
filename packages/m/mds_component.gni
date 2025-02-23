@@ -1,0 +1,23 @@
+# "https://github.com/wpchom/mds_component.git"
+
+declare_args() {
+  mds_component_pkgdef = ""
+  mds_component_pkgver = "master"
+  mds_component_pkgurl = "https://github.com/wpchom/mds_component.git"
+}
+
+declare_args() {
+  if (mds_component_pkgdef == "") {
+    print(">> package 'mds_component' @ ${mds_component_pkgver}")
+    mds_component_pkgdir = exec_script("${mds_build_dir}/scripts/package.py",
+                                       [
+                                         "mds_component",
+                                         "-v=${mds_component_pkgver}",
+                                         "-u=${mds_component_pkgurl}",
+                                       ],
+                                       "string")
+  } else {
+    print("<< package 'mds_component' in ${mds_component_pkgdef}")
+    mds_component_pkgdir = mds_component_pkgdef
+  }
+}

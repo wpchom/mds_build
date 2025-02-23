@@ -1,28 +1,5 @@
-# "https://github.com/wpchom/mds_component_boot.git"
-
-declare_args() {
-  mds_component_boot_pkgdef = ""
-  mds_component_boot_pkgver = "master"
-  mds_component_boot_pkgurl = "https://github.com/wpchom/mds_component_boot.git"
-}
-
-declare_args() {
-  if (mds_component_boot_pkgdef == "") {
-    print(">> package 'mds_component_boot' @ ${mds_component_boot_pkgver}")
-    mds_component_boot_pkgdir =
-        exec_script("${mds_build_dir}/scripts/package.py",
-                    [
-                      "mds_component_boot",
-                      "-v=${mds_component_boot_pkgver}",
-                      "-u=${mds_component_boot_pkgurl}",
-                    ],
-                    "string")
-  } else {
-    print("<< package 'mds_component_boot' in ${mds_component_boot_pkgdef}")
-    mds_component_boot_pkgdir = mds_component_boot_pkgdef
-  }
-}
+import("../mds_component.gni")
 
 group("mds_component_boot") {
-  public_deps = [ "${mds_component_boot_pkgdir}/:mds_component_boot" ]
+  public_deps = [ "${mds_component_pkgdir}/boot/:mds_component_boot" ]
 }
