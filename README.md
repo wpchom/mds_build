@@ -8,7 +8,7 @@ mds_build is a python script to build with 'gn' and 'ninja' for sources.
 - gn
 - ninja
 
-# directories
+## directories
 ```
 .
 ├── cache           # cache for packages

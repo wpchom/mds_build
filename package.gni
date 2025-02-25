@@ -4,27 +4,40 @@ template("pkggroup") {
   group(target_name) {
     not_needed(invoker, "*")
 
-    pkg_targer_dir = exec_script("${mds_build_dir}/scripts/package.py",
-                                 [ "${target_name}" ],
+    input_list = string_split(target_name, "/")
+
+    input_len = 0
+    foreach(in, input_list) {
+      input_len += 1
+    }
+
+    pkg_target_dir = exec_script("${mds_build_dir}/scripts/package.py",
+                                 [ input_list[0] ],
                                  "string")
 
     public_deps = []
-    public_configs = []
+
+    input_path = "${pkg_target_dir}"
+    input_idx = 0
+    foreach(in, input_list) {
+      if (input_idx > 0) {
+        input_path += "/" + in
+      }
+      input_idx += 1
+    }
 
     if (defined(invoker.deps)) {
       foreach(d, invoker.deps) {
-        public_deps += [ "${pkg_targer_dir}/" + d ]
+        public_deps += [ input_path + "/:" + d ]
       }
-    }
-
-    if (defined(invoker.configs)) {
-      foreach(c, invoker.configs) {
-        public_configs += [ "${pkg_targer_dir}" + c ]
+    } else {
+      input_idx = 0
+      foreach(in, input_list) {
+        if (input_idx == input_len - 1) {
+          public_deps += [ input_path + "/:" + in ]
+        }
+        input_idx += 1
       }
-    }
-
-    if (!defined(invoker.deps) && !defined(invoker.configs)) {
-      public_deps += [ "${pkg_targer_dir}/:${target_name}" ]
     }
   }
 }

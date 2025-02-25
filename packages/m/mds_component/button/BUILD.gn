@@ -1,5 +1,6 @@
 import("../mds_component.gni")
 
-group("mds_component_button") {
+group("button") {
   public_deps = [ "${mds_component_pkgdir}/button/:mds_component_button" ]
 }
+
