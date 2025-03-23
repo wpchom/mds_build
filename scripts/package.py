@@ -126,12 +126,11 @@ def pkg_download(args, download_path, download_fext):
             try:
                 os.makedirs(download_path, exist_ok=True)
                 pkg_download_cmd = [MDS_DOWNLOAD_CMD,
-                                    args.url, download_file+".tmp"]
+                                    args.url, download_file]
                 if args.proxy != None:
                     pkg_download_cmd += ["--proxy", args.proxy]
 
                 subprocess.run(pkg_download_cmd)
-                os.rename(download_file+".tmp", download_file)
             except Exception:
                 print(pkg_download_cmd)
                 error("package '{}' download failed".format(args.name))
