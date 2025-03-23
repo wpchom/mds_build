@@ -11,6 +11,7 @@ import subprocess
 MDS_BUILD_DIR = os.path.join(
     os.path.realpath(os.path.dirname(os.path.realpath(__file__))), "../")
 MDS_CACHE_DIR = os.path.join(MDS_BUILD_DIR, "cache")
+MDS_DOWNLOAD_CMD = os.path.join(MDS_BUILD_DIR, "scripts", "download.py")
 
 
 def pkg_repos_dir(args):
@@ -105,7 +106,7 @@ def pkg_download(args, download_path, download_fext):
                     error("git clone '{}' fail".format(args.url))
                 os.makedirs(resource_path, exist_ok=True)
                 os.rename(git_download_path, resource_path)
-            except:
+            except Exception:
                 error("package '{}' git clone failed".format(args.name))
         else:
             try:
@@ -113,7 +114,7 @@ def pkg_download(args, download_path, download_fext):
                     error("git fetch '{}' fail".format(args.name))
                 if subprocess.run(["git", "checkout", args.ver], cwd=resource_path).returncode != 0:
                     error("git checkout '{}' fail".format(args.name))
-            except:
+            except Exception:
                 error("package '{}' git fetch failed, remove it to retry".format(
                     args.name))
 
@@ -124,18 +125,15 @@ def pkg_download(args, download_path, download_fext):
         if not os.path.exists(download_file):
             try:
                 os.makedirs(download_path, exist_ok=True)
-                cmd_curl = ["curl", "--parallel", "-L",
-                            args.url, "-o", download_file+".tmp"]
+                pkg_download_cmd = [MDS_DOWNLOAD_CMD,
+                                    args.url, download_file+".tmp"]
                 if args.proxy != None:
-                    cmd_curl += ["-x", args.proxy]
+                    pkg_download_cmd += ["--proxy", args.proxy]
 
-                res = subprocess.run(cmd_curl, cwd=download_path)
-                if res.returncode != 0:
-                    print(" ".join(cmd_curl))
-                    error("curl download '{}' fail".format(args.url))
-
+                subprocess.run(pkg_download_cmd)
                 os.rename(download_file+".tmp", download_file)
-            except:
+            except Exception:
+                print(pkg_download_cmd)
                 error("package '{}' download failed".format(args.name))
 
         return (download_file)

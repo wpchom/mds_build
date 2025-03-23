@@ -51,7 +51,7 @@ def log_struct(log, logstr):
     try:
         string += fmt % tuple(log["args"])
         return (True, string)
-    except:
+    except Exception:
         string += "PARSE!!!:" + fmt + " args:" + str(log["args"]) + "\n"
         return (False, string)
 

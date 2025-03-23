@@ -10,6 +10,7 @@ import subprocess
 MDS_BUILD_DIR = os.path.join(
     os.path.realpath(os.path.dirname(os.path.realpath(__file__))), "../")
 MDS_CACHE_DIR = os.path.join(MDS_BUILD_DIR, "cache")
+MDS_DOWNLOAD_CMD = os.path.join(MDS_BUILD_DIR, "scripts", "download.py")
 
 
 def error(message):
@@ -22,114 +23,6 @@ def unzip(filepath, decompress_dir):
     zip = zipfile.ZipFile(filepath)
     zip.extractall(decompress_dir)
     zip.close()
-
-
-def download_by_curl(path, url, proxy):
-    try:
-        cmd_curl = ["curl", "-C", "-", "--parallel", "-L", url, "-o", path]
-        if (proxy != None):
-            cmd_curl += ["--proxy", proxy]
-
-        subprocess.run(cmd_curl)
-        return 0
-    except:
-        return -1
-
-
-def download_by_wget(path, url, proxy):
-    try:
-        cmd_wget = ["wget", "-c", url, "-O", path]
-        if (proxy != None):
-            cmd_wget += ["--proxy", proxy]
-
-        subprocess.run(cmd_wget)
-        return 0
-    except:
-        return -1
-
-
-def download_by_libcurl(path, url, proxy):
-    import pycurl
-
-    c = pycurl.Curl()
-    c.setopt(c.URL, url)
-    c.setopt(c.FOLLOWLOCATION, True)
-    c.setopt(c.RESUME_FROM, 0)
-
-    if proxy:
-        c.setopt(c.PROXY, proxy)
-
-    with open(path, 'wb') as f:
-        c.setopt(c.WRITEDATA, f)
-        try:
-            c.perform()
-            ret = 0
-        except:
-            ret = -1
-    c.close()
-
-    return ret
-
-
-def download_by_requests(path, url, proxy):
-    import requests
-
-    if proxy:
-        proxies = {
-            "http": proxy,
-            "https": proxy
-        }
-    else:
-        proxies = {}
-
-    try:
-        r = requests.get(url, stream=True, proxies=proxies)
-        r.raise_for_status()
-        with open(path, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
-        return 0
-    except:
-        return -1
-
-
-def download_by_urllib(path, url, proxy):
-    import urllib.request
-
-    if proxy:
-        handler = urllib.request.ProxyHandler({
-            'http': proxy,
-            'https': proxy
-        })
-        opener = urllib.request.build_opener(handler)
-        urllib.request.install_opener(opener)
-
-    try:
-        urllib.request.urlretrieve(url, path)
-        return 0
-    except:
-        return -1
-
-
-def download(path, url, proxy):
-    path_tmp = path+".tmp"
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-
-
-    if download_by_curl(path_tmp, url, proxy) == 0:
-            pass
-    elif download_by_wget(path_tmp, url, proxy) == 0:
-            pass
-    elif download_by_libcurl(path_tmp, url, proxy) == 0:
-            pass
-    elif download_by_requests(path_tmp, url, proxy) == 0:
-            pass
-    elif download_by_urllib(path_tmp, url, proxy) == 0:
-            pass
-    else:
-        error("download '{}' from '{}' fail".format(path, url))
-
-    os.rename(path_tmp, path)
 
 
 def check_git():
@@ -148,7 +41,7 @@ def check_gn(proxy):
     try:
         subprocess.run([gn_bin, "--version"], stdout=subprocess.DEVNULL)
         return (gn_bin)
-    except:
+    except Exception:
         pass
 
     plat_sys = platform.uname().system.lower()
@@ -166,14 +59,20 @@ def check_gn(proxy):
 
         gn_download_path = os.path.dirname(gn_bin) + ".zip"
         if not os.path.exists(gn_download_path):
-            download(gn_download_path, gn_download_url, proxy)
+            gn_download_cmd = [MDS_DOWNLOAD_CMD,
+                               gn_download_url, gn_download_path]
+            if proxy != None:
+                gn_download_cmd += ["--proxy", proxy]
+
+            subprocess.run(gn_download_cmd)
+
         unzip(gn_download_path, os.path.dirname(gn_bin))
         os.chmod(gn_bin, 0o755)
 
     try:
         subprocess.run([gn_bin, "--version"], stdout=subprocess.DEVNULL)
         return (gn_bin)
-    except:
+    except Exception:
         error("'{}' error, please remove it to retry".format(gn_bin))
 
 
@@ -183,7 +82,7 @@ def check_ninja(proxy):
     try:
         subprocess.run([ninja_bin, "--version"], stdout=subprocess.DEVNULL)
         return (ninja_bin)
-    except:
+    except Exception:
         pass
 
     plat_sys = platform.uname().system.lower()
@@ -197,14 +96,20 @@ def check_ninja(proxy):
 
         ninja_download_path = os.path.dirname(ninja_bin) + ".zip"
         if not os.path.exists(ninja_download_path):
-            download(ninja_download_path, ninja_download_url, proxy)
+            ninja_download_cmd = [MDS_DOWNLOAD_CMD,
+                                  ninja_download_url, ninja_download_path]
+            if proxy != None:
+                ninja_download_cmd += ["--proxy", proxy]
+
+            subprocess.run(ninja_download_cmd)
+
         unzip(ninja_download_path, os.path.dirname(ninja_bin))
         os.chmod(ninja_bin, 0o755)
 
     try:
         subprocess.run([ninja_bin, "--version"], stdout=subprocess.DEVNULL)
         return (ninja_bin)
-    except:
+    except Exception:
         error("'{}' error, please remove it to retry".format(ninja_bin))
 
 
@@ -275,7 +180,7 @@ class Build:
 
         try:
             subprocess.run([self.git, "pull"], cwd=MDS_BUILD_DIR)
-        except:
+        except Exception:
             error("mds_build git pull error")
 
         if os.path.exists(os.path.join(self.args.outdir, "build.pkgs")):
