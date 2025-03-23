@@ -24,20 +24,112 @@ def unzip(filepath, decompress_dir):
     zip.close()
 
 
-def download(path, url, proxy):
-    path_tmp = path+".tmp"
+def download_by_curl(path, url, proxy):
     try:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-
-        cmd_curl = ["curl", "-C" , "-", "--parallel", "-L", url, "-o", path_tmp]
+        cmd_curl = ["curl", "-C", "-", "--parallel", "-L", url, "-o", path]
         if (proxy != None):
             cmd_curl += ["--proxy", proxy]
 
         subprocess.run(cmd_curl)
-
-        os.rename(path_tmp, path)
+        return 0
     except:
+        return -1
+
+
+def download_by_wget(path, url, proxy):
+    try:
+        cmd_wget = ["wget", "-c", url, "-O", path]
+        if (proxy != None):
+            cmd_wget += ["--proxy", proxy]
+
+        subprocess.run(cmd_wget)
+        return 0
+    except:
+        return -1
+
+
+def download_by_libcurl(path, url, proxy):
+    import pycurl
+
+    c = pycurl.Curl()
+    c.setopt(c.URL, url)
+    c.setopt(c.FOLLOWLOCATION, True)
+    c.setopt(c.RESUME_FROM, 0)
+
+    if proxy:
+        c.setopt(c.PROXY, proxy)
+
+    with open(path, 'wb') as f:
+        c.setopt(c.WRITEDATA, f)
+        try:
+            c.perform()
+            ret = 0
+        except:
+            ret = -1
+    c.close()
+
+    return ret
+
+
+def download_by_requests(path, url, proxy):
+    import requests
+
+    if proxy:
+        proxies = {
+            "http": proxy,
+            "https": proxy
+        }
+    else:
+        proxies = {}
+
+    try:
+        r = requests.get(url, stream=True, proxies=proxies)
+        r.raise_for_status()
+        with open(path, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+        return 0
+    except:
+        return -1
+
+
+def download_by_urllib(path, url, proxy):
+    import urllib.request
+
+    if proxy:
+        handler = urllib.request.ProxyHandler({
+            'http': proxy,
+            'https': proxy
+        })
+        opener = urllib.request.build_opener(handler)
+        urllib.request.install_opener(opener)
+
+    try:
+        urllib.request.urlretrieve(url, path)
+        return 0
+    except:
+        return -1
+
+
+def download(path, url, proxy):
+    path_tmp = path+".tmp"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+
+
+    if download_by_curl(path_tmp, url, proxy) == 0:
+            pass
+    elif download_by_wget(path_tmp, url, proxy) == 0:
+            pass
+    elif download_by_libcurl(path_tmp, url, proxy) == 0:
+            pass
+    elif download_by_requests(path_tmp, url, proxy) == 0:
+            pass
+    elif download_by_urllib(path_tmp, url, proxy) == 0:
+            pass
+    else:
         error("download '{}' from '{}' fail".format(path, url))
+
+    os.rename(path_tmp, path)
 
 
 def check_git():
