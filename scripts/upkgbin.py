@@ -47,21 +47,25 @@ def crc16(data):
     return crc & 0xFFFF
 
 
+def error(message):
+    print("\033[31m[Error]\033[0m {}".format(message), flush=True)
+    exit(-1)
+
+
 class BinFile:
     def __init__(self, path, addr, flag):
         if not os.path.exists(path):
-            print(f"file {path} not exist")
-            exit(-1)
+            error(f"file {path} not exist")
 
         if flag < 0 or flag > 0xFFFF:
-            print(f"flag {flag} out of range")
-            exit(-1)
+            error(f"flag {flag} out of range")
 
         self.path = path
         self.flag = flag
         self.addr = addr
         self.size = os.path.getsize(path)
-        self.hash = hashlib.sha256(open(path, 'rb').read()).digest()
+        with open(path, 'rb') as f:
+            self.hash = hashlib.sha256(f.read()).digest()
 
         self.header = struct.pack('>H', self.flag) + \
             struct.pack('>II', self.addr, self.size) + self.hash
@@ -76,13 +80,19 @@ def upkgbin(args):
     bin_list = []
     for bin in args.bin:
         bin_count += 1
+
+        if (len(bin.split(',')) < 3):
+            error(f"bin parameter '{bin}' format incorrect")
+
         path = os.path.abspath(bin.split(',')[0])
         addr = int(bin.split(',')[1], 16)
         flag = int(bin.split(',')[2], 16)
         b = BinFile(path, addr, flag)
+
         total_size += b.size + len(b.header)
         upgrade_hash.update(b.header)
-        upgrade_hash.update(open(path, 'rb').read())
+        with open(path, 'rb') as f:
+            upgrade_hash.update(f.read())
         bin_list.append(b)
 
     upgrade_header = struct.pack('>IH', args.magic, bin_count) + \
@@ -92,21 +102,24 @@ def upkgbin(args):
 
     upkg_output = args.output
     print(f'[upkgbin] count:{bin_count} into:{upkg_output}')
+
+    os.makedirs(os.path.dirname(upkg_output), exist_ok=True)
     with open(upkg_output, 'wb') as f:
         f.write(upgrade_header)
-        for b in bin_list:
+        for i, b in enumerate(bin_list):
             f.write(b.header)
-            f.write(open(b.path, 'rb').read())
-            print(f'''- bin:{b.path}, addr:{hex(b.addr)}, flag:{
+            with open(b.path, 'rb') as bin_file:
+                f.write(bin_file.read())
+            print(f'''- bin {i+1}: {b.path}, addr:{hex(b.addr)}, flag:{
                   hex(b.flag)}, size:{b.size}''')
-        f.close()
 
     upkg_filesz = os.path.getsize(upkg_output)
+    limit_rate = (upkg_filesz / args.limit) * 100 if args.limit > 0 else 0
 
-    print(f'[upkgbin] output file size {upkg_filesz} limit {args.limit}')
-
-    if (args.limit > 0) and (upkg_filesz > args.limit):
-        exit(-1)
+    if args.limit > 0 and upkg_filesz > args.limit:
+        error(f"[upkgbin] upkg:{upkg_filesz} limit:{args.limit} rate:{limit_rate:.2f}%")
+    else:
+        print(f"[upkgbin] upkg:{upkg_filesz} limit:{args.limit} rate:{limit_rate:.2f}%")
 
 
 def type_val(x):
@@ -149,8 +162,7 @@ def main():
     args = parser.parse_args()
 
     if len(args.bin) == 0:
-        print("please input bin file")
-        exit(-1)
+        error("please input bin file")
 
     upkgbin(args)
 

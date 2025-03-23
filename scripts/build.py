@@ -25,16 +25,17 @@ def unzip(filepath, decompress_dir):
 
 
 def download(path, url, proxy):
+    path_tmp = path+".tmp"
     try:
         os.makedirs(os.path.dirname(path), exist_ok=True)
 
-        cmd_curl = ["curl", "--parallel", "-L", url, "-o", path+".tmp"]
+        cmd_curl = ["curl", "-C" , "-", "--parallel", "-L", url, "-o", path_tmp]
         if (proxy != None):
             cmd_curl += ["--proxy", proxy]
 
         subprocess.run(cmd_curl)
 
-        os.rename(path+".tmp", path)
+        os.rename(path_tmp, path)
     except:
         error("download '{}' from '{}' fail".format(path, url))
 
@@ -209,8 +210,7 @@ class Build:
 
         self.debug(' '.join([self.gn] + cmd_gn_build))
 
-        res = subprocess.run(executable=self.gn, args=cmd_gn_build,
-                             cwd=self.args.buildir, shell=True)
+        res = subprocess.run([self.gn] + cmd_gn_build, cwd=self.args.buildir)
         if res.returncode:
             error(res)
         with open(os.path.join(self.args.outdir, ".gitignore"), "w+") as f:

@@ -192,7 +192,7 @@ def version_from_api(args):
 
     if args.match.startswith("-r:"):
         latest_kv = kv_json[-1]
-        match = match[3:]
+        match = args.match[3:]
     else:
         latest_kv = kv_json[0]
         match = args.match
