@@ -28,7 +28,7 @@ template("pkggroup") {
 
     if (defined(invoker.deps)) {
       foreach(d, invoker.deps) {
-        public_deps += [ input_path + "/:" + d ]
+        public_deps += [ input_path + "/" + d ]
       }
     } else {
       input_idx = 0

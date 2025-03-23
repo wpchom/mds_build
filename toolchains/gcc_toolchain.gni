@@ -1,4 +1,4 @@
-template("gnu_toolchain") {
+template("gcc_toolchain") {
   toolchain(target_name) {
     not_needed(invoker, "*")
 
@@ -35,35 +35,57 @@ template("gnu_toolchain") {
     lib_switch = "-l"
     lib_dir_switch = "-L"
 
+    whole_archive_flag = "-Wl,--whole-archive"
+    no_whole_archive_flag = "-Wl,--no-whole-archive"
+
+    gcc_version = exec_script("${mds_build_dir}/scripts/run.py",
+                              [
+                                "${cc}",
+                                "--version",
+                              ],
+                              "string")
+    foreach(str, string_split(gcc_version, " ")) {
+      if (str == "clang") {
+        whole_archive_flag = ""
+        no_whole_archive_flag = ""
+      }
+    }
+
     tool("asm") {
       depfile = "{{output}}.d"
-      command = "${ccache} ${asm} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{asmflags}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
+
+      command = "${ccache} ${asm} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{asmflags}} -c {{source}} -o {{output}}"
       description = "AS {{output}}"
+
       outputs = [ "{{source_out_dir}}/{{source_name_part}}.o" ]
     }
 
     tool("cc") {
       depfile = "{{output}}.d"
-      command = "${ccache} ${cc} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
+
+      command = "${ccache} ${cc} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
       description = "CC {{output}}"
+
       outputs = [ "{{source_out_dir}}/{{source_name_part}}.o" ]
     }
 
     tool("cxx") {
       depfile = "{{output}}.d"
-      command = "${ccache} ${cxx} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
+
+      command = "${ccache} ${cxx} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
       description = "CXX {{output}}"
+
       outputs = [ "{{source_out_dir}}/{{source_name_part}}.o" ]
     }
 
     tool("alink") {
       command = "${ccache} ${alink} {{arflags}} -rcsD {{output}} {{inputs}}"
       description = "AR {{output}}"
-      outputs = [ "{{output_dir}}/{{target_output_name}}{{output_extension}}" ]
 
+      outputs = [ "{{output_dir}}/{{target_output_name}}{{output_extension}}" ]
       default_output_dir = "{{target_out_dir}}"
       default_output_extension = ".a"
       output_prefix = "lib"
@@ -73,13 +95,21 @@ template("gnu_toolchain") {
       soname = "{{target_output_name}}{{output_extension}}"
       sofile = "{{output_dir}}/${soname}"
 
-      command = "${ccache} ${solink} -shared {{ldflags}} -o \"${sofile}\" -Wl,--whole-archive {{inputs}} {{solibs}} {{rlibs}} -Wl,--no-whole-archive {{libs}}"
+      if (whole_archive_flag == "") {
+        soname_flag = ""
+        rspfile_flag = "{{inputs}} {{solibs}} {{libs}}"
+      } else {
+        soname_flag = "-Wl,-soname,${soname}"
+        rspfile_flag = "-Wl,--start-group -Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}} -Wl,--end-group"
+      }
+
+      command = "${ccache} ${solink} -shared {{ldflags}} ${soname_flag} -o \"${sofile}\" ${rspfile_flag}"
       description = "SOLINK ${sofile}"
-      outputs = [ sofile ]
 
       link_output = sofile
       depend_output = sofile
 
+      outputs = [ sofile ]
       default_output_dir = "{{root_out_dir}}"
       default_output_extension = ".so"
       output_prefix = "lib"
@@ -89,10 +119,17 @@ template("gnu_toolchain") {
       outname = "{{target_output_name}}{{output_extension}}"
       outfile = "{{output_dir}}/${outname}"
 
-      command = "${ccache} ${link} {{ldflags}} -o \"${outfile}\" -Wl,--whole-archive {{inputs}} {{solibs}} {{rlibs}} -Wl,--no-whole-archive {{libs}}"
-      description = "LINK ${outfile}"
-      outputs = [ outfile ]
+      if (whole_archive_flag == "") {
+        rspfile_flag = "{{inputs}} {{solibs}} {{libs}}"
+      } else {
+        rspfile_flag = "-Wl,--start-group -Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}} -Wl,--end-group"
+      }
 
+      command =
+          "${ccache} ${link} {{ldflags}} -o \"${outfile}\" ${rspfile_flag}"
+      description = "LINK ${outfile}"
+
+      outputs = [ outfile ]
       default_output_dir = "{{root_out_dir}}"
       default_output_extension = ".elf"
     }
@@ -117,7 +154,7 @@ template("gnu_toolchain") {
   }
 }
 
-template("gnu_action") {
+template("gcc_action") {
   action(target_name) {
     assert(invoker.script != "")
     forward_variables_from(invoker,

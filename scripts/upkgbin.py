@@ -126,6 +126,8 @@ def type_hex(x):
             return int(x[:-1], 10) * 1024
         elif x.endswith('m') or x.endswith('M'):
             return int(x[:-1], 10) * 1024 * 1024
+        elif x.startswith('0x') or x.startswith('0X'):
+            return int(x, 16)
         else:
             return int(x, 10)
     except ValueError:

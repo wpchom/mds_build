@@ -53,7 +53,7 @@ declare_args() {
   }
 }
 
-template("arm_none_eabi_toolchain") {
+template("arm_none_eabi_gcc") {
   toolchain(target_name) {
     not_needed(invoker, "*")
 
@@ -83,33 +83,39 @@ template("arm_none_eabi_toolchain") {
 
     tool("asm") {
       depfile = "{{output}}.d"
-      command = "${ccache} ${asm} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{asmflags}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
+
+      command = "${ccache} ${asm} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{asmflags}} -c {{source}} -o {{output}}"
       description = "AS {{output}}"
+
       outputs = [ "{{source_out_dir}}/{{source_name_part}}.o" ]
     }
 
     tool("cc") {
       depfile = "{{output}}.d"
-      command = "${ccache} ${cc} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
+
+      command = "${ccache} ${cc} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
       description = "CC {{output}}"
+
       outputs = [ "{{source_out_dir}}/{{source_name_part}}.o" ]
     }
 
     tool("cxx") {
       depfile = "{{output}}.d"
-      command = "${ccache} ${cxx} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
+
+      command = "${ccache} ${cxx} -MMD -MF ${depfile} {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
       description = "CXX {{output}}"
+
       outputs = [ "{{source_out_dir}}/{{source_name_part}}.o" ]
     }
 
     tool("alink") {
       command = "${ccache} ${alink} {{arflags}} -rcsD {{output}} {{inputs}}"
       description = "AR {{output}}"
-      outputs = [ "{{output_dir}}/{{target_output_name}}{{output_extension}}" ]
 
+      outputs = [ "{{output_dir}}/{{target_output_name}}{{output_extension}}" ]
       default_output_dir = "{{target_out_dir}}"
       default_output_extension = ".a"
       output_prefix = "lib"
@@ -119,13 +125,13 @@ template("arm_none_eabi_toolchain") {
       soname = "{{target_output_name}}{{output_extension}}"
       sofile = "{{output_dir}}/${soname}"
 
-      command = "${ccache} ${solink} -shared {{ldflags}} -o \"${sofile}\" -Wl,--whole-archive {{inputs}} {{solibs}} {{rlibs}} -Wl,--no-whole-archive {{libs}}"
+      command = "${ccache} ${solink} -shared {{ldflags}} -o \"${sofile}\" -Wl,--start-group -Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}} -Wl,--end-group"
       description = "SOLINK ${sofile}"
-      outputs = [ sofile ]
 
       link_output = sofile
       depend_output = sofile
 
+      outputs = [ sofile ]
       default_output_dir = "{{root_out_dir}}"
       default_output_extension = ".so"
       output_prefix = "lib"
@@ -135,10 +141,10 @@ template("arm_none_eabi_toolchain") {
       outname = "{{target_output_name}}{{output_extension}}"
       outfile = "{{output_dir}}/${outname}"
 
-      command = "${ccache} ${link} {{ldflags}} -o \"${outfile}\" -Wl,--whole-archive {{inputs}} {{solibs}} {{rlibs}} -Wl,--no-whole-archive {{libs}}"
+      command = "${ccache} ${link} {{ldflags}} -o \"${outfile}\" -Wl,--start-group -Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}} -Wl,--end-group"
       description = "LINK ${outfile}"
-      outputs = [ outfile ]
 
+      outputs = [ outfile ]
       default_output_dir = "{{root_out_dir}}"
       default_output_extension = ".elf"
     }
