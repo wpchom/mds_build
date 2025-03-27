@@ -9,10 +9,10 @@ declare_args() {
 declare_args() {
   if (mds_kernel_pkgdef == "") {
     print(">> package 'mds_kernel' @ ${mds_kernel_pkgver}")
-    mds_kernel_pkgdir = exec_script("${mds_build_dir}/scripts/package.py",
+    mds_kernel_pkgdir = exec_script("${mds_build_dir}/scripts/mds/package.py",
                                     [
                                       "mds_kernel",
-                                      "-v=${mds_kernel_pkgver}",
+                                      "-r=${mds_kernel_pkgver}",
                                       "-u=${mds_kernel_pkgurl}",
                                     ],
                                     "string")

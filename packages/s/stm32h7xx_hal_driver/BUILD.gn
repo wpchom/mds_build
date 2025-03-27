@@ -15,10 +15,10 @@ declare_args() {
   if (stm32h7xx_hal_driver_pkgdef == "") {
     print(">> package 'stm32h7xx_hal_driver' @ ${stm32h7xx_hal_driver_pkgver}")
     stm32h7xx_hal_driver_pkgdir =
-        exec_script("${mds_build_dir}/scripts/package.py",
+        exec_script("${mds_build_dir}/scripts/mds/package.py",
                     [
                       "stm32h7xx_hal_driver",
-                      "-v=${stm32h7xx_hal_driver_pkgver}",
+                      "-r=${stm32h7xx_hal_driver_pkgver}",
                       "-u=${stm32h7xx_hal_driver_pkgurl}",
                       "-a=${stm32h7xx_hal_driver_pkgapi}",
                       "-m=name:v(.*)",

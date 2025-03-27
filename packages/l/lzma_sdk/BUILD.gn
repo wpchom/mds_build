@@ -13,10 +13,10 @@ declare_args() {
 declare_args() {
   if (lzma_sdk_pkgdef == "") {
     print(">> package 'lzma_sdk' @ ${lzma_sdk_pkgver}")
-    lzma_sdk_pkgdir = exec_script("${mds_build_dir}/scripts/package.py",
+    lzma_sdk_pkgdir = exec_script("${mds_build_dir}/scripts/mds/package.py",
                                   [
                                     "lzma_sdk",
-                                    "-v=${lzma_sdk_pkgver}",
+                                    "-r=${lzma_sdk_pkgver}",
                                     "-u=${lzma_sdk_pkgurl}",
                                     "-m=name:v(.*)",
                                     "-p=.",

@@ -10,10 +10,10 @@ declare_args() {
   if (drv_chip_stm32f1xx_pkgdef == "") {
     print(">> package 'drv_chip_stm32f1xx' @ ${drv_chip_stm32f1xx_pkgver}")
     drv_chip_stm32f1xx_pkgdir =
-        exec_script("${mds_build_dir}/scripts/package.py",
+        exec_script("${mds_build_dir}/scripts/mds/package.py",
                     [
                       "drv_chip_stm32f1xx",
-                      "-v=${drv_chip_stm32f1xx_pkgver}",
+                      "-r=${drv_chip_stm32f1xx_pkgver}",
                       "-u=${drv_chip_stm32f1xx_pkgurl}",
                     ],
                     "string")

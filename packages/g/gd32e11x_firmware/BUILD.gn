@@ -15,11 +15,11 @@ declare_args() {
   if (gd32e11x_firmware_pkgdef == "") {
     print(">> package 'gd32e11x_firmware' @ ${gd32e11x_firmware_pkgver}")
     gd32e11x_firmware_pkgdir =
-        exec_script("${mds_build_dir}/scripts/package.py",
+        exec_script("${mds_build_dir}/scripts/mds/package.py",
                     [
                       "gd32e11x_firmware",
                       "-u=${gd32e11x_firmware_pkgurl}",
-                      "-v=${gd32e11x_firmware_pkgver}",
+                      "-r=${gd32e11x_firmware_pkgver}",
                       "-p=GD32E11x_Firmware_Library_V{version}",
                     ],
                     "string")

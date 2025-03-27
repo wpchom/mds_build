@@ -25,10 +25,10 @@ declare_args() {
   if (arm_none_eabi_gcc_pkgdef == "") {
     print(">> package 'arm_none_eabi_gcc' @ ${arm_none_eabi_gcc_pkgver}")
     arm_none_eabi_gcc_pkgdir =
-        exec_script("${mds_build_dir}/scripts/package.py",
+        exec_script("${mds_build_dir}/scripts/mds/package.py",
                     [
                       "arm_none_eabi_gcc-${host_os}-${host_cpu}",
-                      "-v=${arm_none_eabi_gcc_pkgver}",
+                      "-r=${arm_none_eabi_gcc_pkgver}",
                       "-u=${arm_none_eabi_gcc_pkgurl}",
                       "-a=${arm_none_eabi_gcc_pkgapi}",
                       "-m=tag_name:v(.*)",

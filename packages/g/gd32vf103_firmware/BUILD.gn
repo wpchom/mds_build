@@ -14,11 +14,11 @@ declare_args() {
   if (gd32vf103_firmware_pkgdef == "") {
     print(">> package 'gd32vf103_firmware' @ ${gd32vf103_firmware_pkgver}")
     gd32vf103_firmware_pkgdir =
-        exec_script("${mds_build_dir}/scripts/package.py",
+        exec_script("${mds_build_dir}/scripts/mds/package.py",
                     [
                       "gd32vf103_firmware",
                       "-u=${gd32vf103_firmware_pkgurl}",
-                      "-v=${gd32vf103_firmware_pkgver}",
+                      "-r=${gd32vf103_firmware_pkgver}",
                       "-p=GD32VF103_Firmware_Library_V{version}",
                     ],
                     "string")

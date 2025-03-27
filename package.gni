@@ -11,7 +11,7 @@ template("pkggroup") {
       input_len += 1
     }
 
-    pkg_target_dir = exec_script("${mds_build_dir}/scripts/package.py",
+    pkg_target_dir = exec_script("${mds_build_dir}/scripts/mds/package.py",
                                  [ input_list[0] ],
                                  "string")
 
