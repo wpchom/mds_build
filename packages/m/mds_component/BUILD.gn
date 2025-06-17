@@ -9,15 +9,20 @@ declare_args() {
 declare_args() {
   if (mds_component_pkgdef == "") {
     print(">> package 'mds_component' @ ${mds_component_pkgver}")
-    mds_component_pkgdir = exec_script("${mds_build_dir}/scripts/mds/package.py",
-                                       [
-                                         "mds_component",
-                                         "-r=${mds_component_pkgver}",
-                                         "-u=${mds_component_pkgurl}",
-                                       ],
-                                       "string")
+    mds_component_pkgdir =
+        exec_script("${mds_build_dir}/scripts/mds/package.py",
+                    [
+                      "mds_component",
+                      "-r=${mds_component_pkgver}",
+                      "-u=${mds_component_pkgurl}",
+                    ],
+                    "string")
   } else {
     print("<< package 'mds_component' in ${mds_component_pkgdef}")
     mds_component_pkgdir = mds_component_pkgdef
   }
+}
+
+group("mds_component") {
+  public_deps = [ "${mds_component_pkgdir}/:mds_component" ]
 }

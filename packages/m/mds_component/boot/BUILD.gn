@@ -1,6 +1,0 @@
-import("../mds_component.gni")
-
-group("boot") {
-  public_deps = [ "${mds_component_pkgdir}/boot/:mds_component_boot" ]
-}
-

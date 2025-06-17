@@ -22,7 +22,7 @@ declare_args() {
                                             "-u=${stm32h7xx_device_pkgurl}",
                                             "-a=${stm32h7xx_device_pkgapi}",
                                             "-m=name:v(.*)",
-                                            "-p=cmsis_device_h7-{version}",
+                                            "-p=cmsis-device-h7-{version}",
                                           ],
                                           "string")
   } else {
@@ -41,6 +41,10 @@ config("stm32h7xx_device_config") {
   if (defined(stm32h7xx_device_devdef) && stm32h7xx_device_devdef != "") {
     defines = [ "${stm32h7xx_device_devdef}" ]
   }
+}
+
+group("stm32h7xx_device") {
+  public_configs = [ ":stm32h7xx_device_config" ]
 }
 
 source_set("stm32h7xx_system") {

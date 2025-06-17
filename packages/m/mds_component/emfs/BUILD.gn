@@ -1,5 +1,0 @@
-import("../mds_component.gni")
-
-group("emfs") {
-  public_deps = [ "${mds_component_pkgdir}/emfs/:mds_component_emfs" ]
-}

@@ -211,8 +211,17 @@ def action(args):
         else:
             import compress
 
-            download.download_pkg(args.url, download_path, args.proxy)
-            compress.decompress(download_path, resource_path)
+            if args.url.split(".")[-2] == "tar":
+                download_file = f"{args.name}-{args.ver}.tar.{args.url.split('.')[-1]}"
+            else:
+                download_file = f"{args.name}-{args.ver}.{args.url.split('.')[-1]}"
+
+            download.download_pkg(
+                args.url, os.path.join(download_path, download_file), args.proxy
+            )
+            compress.decompress(
+                os.path.join(download_path, download_file), resource_path, False
+            )
     else:
         # not update with package
         pass

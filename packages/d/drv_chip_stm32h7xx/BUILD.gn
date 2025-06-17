@@ -1,0 +1,28 @@
+# "https://github.com/wpchom/drv_chip_stm32h7xx.git"
+
+declare_args() {
+  drv_chip_stm32h7xx_pkgdef = ""
+  drv_chip_stm32h7xx_pkgver = "master"
+  drv_chip_stm32h7xx_pkgurl = "https://github.com/wpchom/drv_chip_stm32h7xx.git"
+}
+
+declare_args() {
+  if (drv_chip_stm32h7xx_pkgdef == "") {
+    print(">> package 'drv_chip_stm32h7xx' @ ${drv_chip_stm32h7xx_pkgver}")
+    drv_chip_stm32h7xx_pkgdir =
+        exec_script("${mds_build_dir}/scripts/mds/package.py",
+                    [
+                      "drv_chip_stm32h7xx",
+                      "-r=${drv_chip_stm32h7xx_pkgver}",
+                      "-u=${drv_chip_stm32h7xx_pkgurl}",
+                    ],
+                    "string")
+  } else {
+    print("<< package 'drv_chip_stm32h7xx' in ${drv_chip_stm32h7xx_pkgdef}")
+    drv_chip_stm32h7xx_pkgdir = drv_chip_stm32h7xx_pkgdef
+  }
+}
+
+group("drv_chip_stm32h7xx") {
+  public_deps = [ "${drv_chip_stm32h7xx_pkgdir}/:drv_chip_stm32h7xx" ]
+}

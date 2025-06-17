@@ -113,7 +113,7 @@ def main():
     mds_action(args)
 
     if os.getenv("MDS_BUILD_PROXY"):
-        os.environ["MDS_BUILD_PROXY"] = None
+        os.environ["MDS_BUILD_PROXY"] = ""
 
 
 if __name__ == "__main__":

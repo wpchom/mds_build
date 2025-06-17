@@ -35,10 +35,6 @@ pkggroup("cmsis") {
   configs = [ ":cmsis_core" ]
 }
 
-group("stm32f1xx_device") {
-  public_configs = [ ":stm32f1xx_device_config" ]
-}
-
 config("stm32f1xx_device_config") {
   include_dirs = [ "${stm32f1xx_device_pkgdir}/Include" ]
 
@@ -47,7 +43,11 @@ config("stm32f1xx_device_config") {
   }
 }
 
-static_library("stm32f1xx_system") {
+group("stm32f1xx_device") {
+  public_configs = [ ":stm32f1xx_device_config" ]
+}
+
+source_set("stm32f1xx_system") {
   sources = [ "${stm32f1xx_device_pkgdir}/Source/Templates/system_stm32f1xx.c" ]
 
   public_configs = [ ":stm32f1xx_device_config" ]

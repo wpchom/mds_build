@@ -1,6 +1,0 @@
-import("../mds_component.gni")
-
-group("algo") {
-  public_deps = [ "${mds_component_pkgdir}/algo/:mds_component_algo" ]
-}
-

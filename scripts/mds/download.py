@@ -49,6 +49,11 @@ def _download_by_wget(url, path, proxy):
 
 
 def download_pkg(url, path, proxy):
+    if os.path.exists(path):
+        return
+    else:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+
     path_tmp = path + ".tmp"
 
     try:

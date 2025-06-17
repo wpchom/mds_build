@@ -1,5 +1,0 @@
-import("../mds_component.gni")
-
-group("fsm") {
-  public_deps = [ "${mds_component_pkgdir}/fsm/:mds_component_fsm" ]
-}

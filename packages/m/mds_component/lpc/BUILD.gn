@@ -1,5 +1,0 @@
-import("../mds_component.gni")
-
-group("lpc") {
-  public_deps = [ "${mds_component_pkgdir}/lpc/:mds_component_lpc" ]
-}
